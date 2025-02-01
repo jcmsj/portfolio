@@ -5,7 +5,7 @@ export default defineConfig({
   title: "JCSJ",
   description: "I'm Jean Carlo San Juan, a developer based in the Philippines. I want to build web apps that improve people's lives using technologies like Vue, React, Laravel.",
   // https://vitepress.dev/guide/deploy#setting-a-public-base-path
-  base: "/repo/",
+  base: "/portfolio/",
   lastUpdated: true,
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
