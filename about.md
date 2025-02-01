@@ -27,6 +27,6 @@ This was my first CTF and where I got introduced to cybersecurity.
 :::
 
 ::: info ICP Hackathon 2024 
-My second hackathon where we built a blockchain-based DeFI platform aiming that would ultimately aid the Agricultural sector.
+My second hackathon where we built a blockchain-based DeFI platform that would ultimately aid the Agricultural sector.
 :::
 
