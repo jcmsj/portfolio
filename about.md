@@ -6,7 +6,7 @@ lang: en-US
 
 ## Bio
 <div class="flex flex-row">
-<img src="/self.jpg" alt="JC" class="h-20 w-36 mr-4">
+<img src="/portfolio/self.jpg" alt="JC" class="h-20 w-36 mr-4">
 <div>
 Hi, I'm JC, a developer from the Philippines. I'm passionate about using web technologies to improve people's lives. I'm at my 4th year studying at the Technological Institute of the Philippines QC to complete my Bachelor of Science in Computer Science.
 </div>
