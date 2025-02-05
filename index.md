@@ -6,6 +6,8 @@ hero:
   name: "Hi! I am JC"
   text: "A Filipino web developer"
   tagline: I'm passionate about using web technologies to improve people's lives.
+  image:
+    src: /myself.png
   actions:
     - theme: brand
       text: Resume

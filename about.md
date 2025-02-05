@@ -6,8 +6,8 @@ lang: en-US
 
 ## Bio
 <div class="flex flex-row">
-<img src="/self.jpg" alt="JC" class="h-20 w-36 mr-4">
-<div>
+<img src="/myself.png" alt="JC" class="h-36 w-36 mr-4">
+<div class="text-justify">
 Hi, I'm JC, a developer from the Philippines. I'm passionate about using web technologies to improve people's lives. I'm at my 4th year studying at the Technological Institute of the Philippines QC to complete my Bachelor of Science in Computer Science.
 </div>
 </div>
@@ -26,7 +26,11 @@ Even before university, I already begun my web development journey independently
 This was my first CTF and where I got introduced to cybersecurity.
 :::
 
+::: info [Gawad T.I.P. Awardee](https://www.facebook.com/share/p/1KJoHkpgW7/)
+As a side effect of the HackforGov 2024, my team was consequently awarded the Gawad T.I.P.
+:::
+
 ::: info ICP Hackathon 2024 
-My second hackathon where we built a blockchain-based DeFI platform that would ultimately aid the Agricultural sector.
+My second hackathon where we built a blockchain-based DeFI platform that aims to ultimately aid the Agricultural sector in the country.
 :::
 
