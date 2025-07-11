@@ -5,11 +5,13 @@ lang: en-US
 ---
 
 ## Bio
-<div class="flex flex-row">
-<img src="/myself.png" alt="JC" class="h-18 w-18 lg:h-36 lg:w-36 mr-4">
-<div class="text-justify">
+<div class="flex flex-col lg:flex-row gap-x-2 mt-2 items-center">
+<span>
+<img src="/myself.png" alt="JC" class="w-48 lg:w-max">
+</span>
+<span class="text-justify">
 Hi, I'm JC, a developer from the Philippines. I'm passionate about using web and cloud technologies to improve people's lives. I'm at my 4th year studying at the Technological Institute of the Philippines QC to complete my Bachelor of Science in Computer Science.
-</div>
+</span>
 </div>
 
 <!-- ## Experience -->
@@ -18,7 +20,7 @@ Hi, I'm JC, a developer from the Philippines. I'm passionate about using web and
 
 ::: info Cloud Engineering Intern at CTP
 <div class="flex flex-col lg:flex-row gap-x-2 mt-2 items-center">
-<span><img class="w-144" src="https://images.credly.com/size/340x340/images/0e284c3f-5164-4b21-8660-0d84737941bc/image.png"></span>
+<span><img class="w-48 lg:w-144" src="https://images.credly.com/size/340x340/images/0e284c3f-5164-4b21-8660-0d84737941bc/image.png"></span>
 <span class="text-justify">
 Wanting to broaden my knowledge of the tech field, I took on an internship at <a href="https://www.computradetech.com.ph/">Computradetech PH</a>. Here I studied  building secure and robust cloud architectures for providing solutions to business requirements using AWS services and technologies. This ultimately got me an <a href="https://www.credly.com/badges/fc854628-e2db-4ce3-afb2-755813b2d404/linked_in"> AWS Solutions Architect Associate certificate </a>.
 </span>
@@ -27,7 +29,7 @@ Wanting to broaden my knowledge of the tech field, I took on an internship at <a
 
 ::: info Fullstack Web develoment at TIP QC
 <div class="flex flex-col lg:flex-row gap-x-2 mt-2 items-center">
-<span><img class="w-144" src="/TIP-INFORMAL-LOGO-04-2.png"></span>
+<span><img class="w-48 lg:w-144" src="/TIP-INFORMAL-LOGO-04-2.png"></span>
 <span class="text-justify">
 Serving as both my thesis and internship project, my team (combined CS and IT students) developed a file management system with computer vision for document digitization and algorithm for generating new documents from existing ones.
 </span>
