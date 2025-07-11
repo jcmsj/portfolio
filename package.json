@@ -7,9 +7,9 @@
   "packageManager": "pnpm@10.13.1+sha512.37ebf1a5c7a30d5fabe0c5df44ee8da4c965ca0c5af3dbab28c3a1681b70a256218d05c81c9c0dcf767ef6b8551eb5b960042b9ed4300c59242336377e01cfad",
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.11",
-    "daisyui": "5.0.46",
+    "daisyui": "^5.0.46",
     "tailwindcss": "^4.1.11",
-    "vitepress": "2.0.0-alpha.2",
+    "vitepress": "^2.0.0-alpha.8",
     "vue": "^3.5.17"
   }
 }
