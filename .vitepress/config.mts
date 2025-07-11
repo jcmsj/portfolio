@@ -24,7 +24,7 @@ export default defineConfig({
         items: [
           { text: 'About', link: '/about' },
           { text: 'Contact', link: '/contact' },
-          { text: 'Resume', link: 'https://rxresu.me/jcmsj/ojt-resume' },
+          { text: 'Resume', link: 'https://jcmsj.github.io/resume-print/' },
           { text: 'Organizations', link: '/organizations' },
         ]
       },
@@ -36,7 +36,7 @@ export default defineConfig({
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/jcmsj' },
-      { icon: 'linkedin', link: 'https://www.linkedin.com/in/jean-carlo-san-juan-a52093244/' },
+      { icon: 'linkedin', link: 'https://www.linkedin.com/in/jcmsj/' },
       { icon: 'gmail', link: 'mailto:sanjuan.jeancarlo@gmail.com' },
       { icon: 'facebook', link: 'https://www.facebook.com/989.JcSanJuan' }
     ]

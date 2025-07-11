@@ -11,16 +11,26 @@ hero:
   actions:
     - theme: brand
       text: Resume
-      link: https://rxresu.me/jcmsj/ojt-resume
+      link: https://jcmsj.github.io/resume-print/
     - theme: alt
       text: About me
       link: /about
 
 features:
   - icon:
+      src: /cloud.png
+    title: Cloudflare Log Insights
+    details: A cloud-native website analytics tool that ingests Cloudflare logpush data. Served as my capstone project during my internship.
+
+  - icon:
+      src: /unifile.png
+    title: UniFile
+    details: Thesis research project of a file management system built with Laravel + React, powered by computer vision for document digitization and generation.
+    
+  - icon:
       src: /vuk.png
     title: Vuk
-    details: An EPUB Reader for the web built with Vue.js enahcned with Progressive Web App (PWA) features.
+    details: An EPUB Reader for the web built with Vue.js enhanced with Progressive Web App (PWA) features.
     link: https://beta.vuk.pages.dev
     linkText: Try it out
   - icon:

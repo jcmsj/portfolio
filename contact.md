@@ -13,8 +13,8 @@ title: Contact Me
 
 ::: tip Social Media
 - [GitHub](https://github.com/jcmsj)
-- [LinkedIn](https://linkedin.com/in/yourusername)
-- [Twitter](https://twitter.com/yourusername)
+- [LinkedIn](https://www.linkedin.com/in/jcmsj/)
+<!-- - [Twitter](https://twitter.com/yourusername) -->
 :::
 
 
