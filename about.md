@@ -7,7 +7,7 @@ lang: en-US
 ## Bio
 <div class="flex flex-col lg:flex-row gap-x-2 mt-2 items-center">
 <span>
-<img src="/myself.png" alt="JC" class="w-48 lg:w-max">
+<img src="/barong.png" alt="JC" class="w-48 lg:w-max">
 </span>
 <span class="text-justify">
 Hi, I'm JC, a developer from the Philippines. I'm passionate about using web and cloud technologies to improve people's lives. I'm at my 4th year studying at the Technological Institute of the Philippines QC to complete my Bachelor of Science in Computer Science.
@@ -37,15 +37,20 @@ Serving as both my thesis and internship project, my team (combined CS and IT st
 :::
 
 ## Education
-::: info Foundation
-My early computer science classes were taught using Java, but since I had decided to specialize on Intelligent Systems for my degree, I also became familiar with Python. This required experimenting with expert systems, natural language processing, and machine learning using packages like Pandas and Pytorch. 
+
+::: info Honors
+Graduated with honors - Cum Laude from the Technological Institute of the Philippines - Quezon City with a Bachelor of Science in Computer Science.
 :::
 ::: info Web Development
 Even before university, I already begun my web development journey independently. I started with vanilla HTML, CSS, and JavaScript, then moved on to using PHP. As early as my 1st year in college, I learned React and Vue. I applied these in my personal projects. Soon after, I started using these whenever possible in my academic projects. I used Nuxt and Vue for my Software Engineering 1 & 2 project. a mix of React, Pytorch, and Laravel for my thesis research project.
 :::
+::: info Foundation
+My early computer science classes were taught using Java, but since discovering Intelligent Systems for my degree, I also became familiar with Python. This required experimenting with expert systems, natural language processing, and machine learning. 
+:::
 
 
 ## Achievements
+
 ::: info [HackforGov 2024 - Regionals | 1st Runner up](https://www.facebook.com/TIP1962official/posts/pfbid0hnfhpQBo3UQzdxuJ65gf9YEeb57KhYfHex5cnrz7yDxschTe1mbjKunsiE3NZrELl)
 This was my first CTF and where I got introduced to cybersecurity.
 :::

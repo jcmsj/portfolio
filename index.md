@@ -7,7 +7,7 @@ hero:
   text: "A Filipino web developer"
   tagline: I'm passionate about using web and cloud technologies to improve people's lives.
   image:
-    src: /myself.png
+    src: /barong.png
   actions:
     - theme: brand
       text: Resume
