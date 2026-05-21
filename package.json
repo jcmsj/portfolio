@@ -4,12 +4,12 @@
     "docs:build": "vitepress build",
     "docs:preview": "vitepress preview"
   },
-  "packageManager": "pnpm@10.13.1+sha512.37ebf1a5c7a30d5fabe0c5df44ee8da4c965ca0c5af3dbab28c3a1681b70a256218d05c81c9c0dcf767ef6b8551eb5b960042b9ed4300c59242336377e01cfad",
+  "packageManager": "pnpm@11.2.2+sha512.36e6621fad506178936455e70247b8808ef4ec25797a9f437a93281a020484e2607f6a469a22e982987c3dbb8866e3071514ab10a4a1749e06edcd1ec118436f",
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.11",
-    "daisyui": "^5.0.46",
-    "tailwindcss": "^4.1.11",
-    "vitepress": "^2.0.0-alpha.8",
-    "vue": "^3.5.17"
+    "@tailwindcss/vite": "^4.3.0",
+    "daisyui": "^5.5.20",
+    "tailwindcss": "^4.3.0",
+    "vitepress": "^2.0.0-alpha.17",
+    "vue": "^3.5.34"
   }
 }
