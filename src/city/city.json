@@ -1,0 +1,309 @@
+{
+  "meta": {
+    "cityName": "New San Juan",
+    "tagline": "A tiny city built out of JC's career in web & cloud",
+    "resumeUrl": "https://jcmsj.github.io/resume-print/"
+  },
+  "plaza": {
+    "position": [
+      0,
+      0
+    ],
+    "contentId": "about"
+  },
+  "zones": [
+    {
+      "id": "education",
+      "name": "Campus District",
+      "blurb": "Where the foundations were poured \u2014 CS degree, self-taught web dev, and everything in between.",
+      "position": [
+        -48,
+        -18
+      ],
+      "radius": 20,
+      "color": "#e8a33d"
+    },
+    {
+      "id": "experience",
+      "name": "Internship Harbor",
+      "blurb": "Ships came in here: cloud engineering at CTP and fullstack work at TIP QC.",
+      "position": [
+        44,
+        -30
+      ],
+      "radius": 20,
+      "color": "#2e8b8b"
+    },
+    {
+      "id": "projects",
+      "name": "Innovation Park",
+      "blurb": "Side quests that shipped \u2014 analytics, readers, clinics, gestures and encrypted messages.",
+      "position": [
+        46,
+        30
+      ],
+      "radius": 22,
+      "color": "#9b5fb3"
+    },
+    {
+      "id": "achievements",
+      "name": "Trophy Row",
+      "blurb": "Monuments to hackathons survived and awards earned.",
+      "position": [
+        0,
+        50
+      ],
+      "radius": 16,
+      "color": "#d9a514"
+    },
+    {
+      "id": "community",
+      "name": "Community Quarter",
+      "blurb": "Orgs and communities that kept the lights on.",
+      "position": [
+        -48,
+        30
+      ],
+      "radius": 14,
+      "color": "#4a90d9"
+    },
+    {
+      "id": "contact",
+      "name": "Post Office Point",
+      "blurb": "Send a letter \u2014 the city always replies.",
+      "position": [
+        14,
+        -48
+      ],
+      "radius": 10,
+      "color": "#d95f5f"
+    }
+  ],
+  "places": [
+    {
+      "id": "tip-qc",
+      "zone": "education",
+      "name": "TIP Quezon City",
+      "subtitle": "BS Computer Science \u00b7 Cum Laude",
+      "building": "campus",
+      "position": [
+        -52,
+        -22
+      ],
+      "rotationY": 0.5,
+      "scale": 1,
+      "label": "2021 \u2014 2025"
+    },
+    {
+      "id": "self-taught-web",
+      "zone": "education",
+      "name": "First Laptop Workshop",
+      "subtitle": "HTML, CSS, JS \u2192 PHP \u2192 React & Vue",
+      "building": "workshop",
+      "position": [
+        -41,
+        -25
+      ],
+      "rotationY": -0.3,
+      "scale": 1,
+      "label": "pre-college"
+    },
+    {
+      "id": "foundations-lab",
+      "zone": "education",
+      "name": "Foundations Lab",
+      "subtitle": "Java, Python & intelligent systems",
+      "building": "lab",
+      "position": [
+        -50,
+        -9
+      ],
+      "rotationY": 2.6,
+      "scale": 1,
+      "label": "coursework"
+    },
+    {
+      "id": "ctp-internship",
+      "zone": "experience",
+      "name": "CTP Cloud Works",
+      "subtitle": "Cloud Engineering Intern \u00b7 AWS SAA",
+      "building": "harbor",
+      "position": [
+        48,
+        -34
+      ],
+      "rotationY": -0.6,
+      "scale": 1,
+      "label": "internship"
+    },
+    {
+      "id": "tip-internship",
+      "zone": "experience",
+      "name": "UniFile Dockyard",
+      "subtitle": "Fullstack Intern \u00b7 thesis project",
+      "building": "startup",
+      "position": [
+        38,
+        -25
+      ],
+      "rotationY": 0.8,
+      "scale": 1,
+      "label": "internship"
+    },
+    {
+      "id": "cloudflare-log-insights",
+      "zone": "projects",
+      "name": "Log Insights Tower",
+      "subtitle": "Cloudflare Logpush analytics \u00b7 capstone",
+      "building": "tower",
+      "position": [
+        52,
+        26
+      ],
+      "rotationY": -0.4,
+      "scale": 1,
+      "label": "capstone"
+    },
+    {
+      "id": "unifile",
+      "zone": "projects",
+      "name": "UniFile Depot",
+      "subtitle": "Laravel + React + computer vision",
+      "building": "startup",
+      "position": [
+        40,
+        24
+      ],
+      "rotationY": 0.9,
+      "scale": 1,
+      "label": "thesis R&D"
+    },
+    {
+      "id": "vuk",
+      "zone": "projects",
+      "name": "Vuk Reading Room",
+      "subtitle": "EPUB reader PWA \u00b7 Vue",
+      "building": "startup",
+      "position": [
+        50,
+        38
+      ],
+      "rotationY": 1.2,
+      "scale": 1,
+      "label": "live app"
+    },
+    {
+      "id": "clinic-system",
+      "zone": "projects",
+      "name": "Clinic Works",
+      "subtitle": "Nuxt + Drizzle \u00b7 software engineering R&D",
+      "building": "startup",
+      "position": [
+        38,
+        36
+      ],
+      "rotationY": -1,
+      "scale": 1,
+      "label": "SE 1 & 2"
+    },
+    {
+      "id": "scurge",
+      "zone": "projects",
+      "name": "SCURGE Studio",
+      "subtitle": "Spell classification from gestures \u00b7 ML",
+      "building": "lab",
+      "position": [
+        46,
+        20
+      ],
+      "rotationY": 0.2,
+      "scale": 1,
+      "label": "ML final"
+    },
+    {
+      "id": "sabihin-lite",
+      "zone": "projects",
+      "name": "Sabihin Station",
+      "subtitle": "E2E encrypted anonymous messaging \u00b7 Nuxt",
+      "building": "startup",
+      "position": [
+        56,
+        34
+      ],
+      "rotationY": -2.2,
+      "scale": 1,
+      "label": "side quest"
+    },
+    {
+      "id": "hackforgov",
+      "zone": "achievements",
+      "name": "HackforGov Monument",
+      "subtitle": "CTF regionals \u00b7 1st runner-up",
+      "building": "monument",
+      "position": [
+        -8,
+        52
+      ],
+      "rotationY": 0,
+      "scale": 1,
+      "label": "2024"
+    },
+    {
+      "id": "gawad-tip",
+      "zone": "achievements",
+      "name": "Gawad T.I.P. Obelisk",
+      "subtitle": "School-wide service award",
+      "building": "monument",
+      "position": [
+        2,
+        58
+      ],
+      "rotationY": 0,
+      "scale": 1,
+      "label": "2024"
+    },
+    {
+      "id": "icp-hackathon",
+      "zone": "achievements",
+      "name": "ICP Beacon",
+      "subtitle": "DeFi for agriculture \u00b7 blockchain hackathon",
+      "building": "radio",
+      "position": [
+        9,
+        47
+      ],
+      "rotationY": 0,
+      "scale": 1,
+      "label": "2024"
+    },
+    {
+      "id": "hacktivators",
+      "zone": "community",
+      "name": "Hacktivators Hall",
+      "subtitle": "Competition crew \u00b7 ACM \u00b7 JPCS",
+      "building": "hall",
+      "position": [
+        -48,
+        30
+      ],
+      "rotationY": 0,
+      "scale": 1,
+      "label": "community"
+    },
+    {
+      "id": "post-office",
+      "zone": "contact",
+      "name": "Post Office",
+      "subtitle": "Say hello \u2014 email, GitHub, LinkedIn",
+      "building": "postoffice",
+      "position": [
+        14,
+        -48
+      ],
+      "rotationY": 0,
+      "scale": 1,
+      "label": "open 24/7"
+    }
+  ],
+  "props": []
+}
