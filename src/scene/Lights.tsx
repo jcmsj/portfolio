@@ -11,10 +11,10 @@ export function Lights() {
         intensity={1.7}
         castShadow
         shadow-mapSize={[2048, 2048]}
-        shadow-camera-left={-110}
-        shadow-camera-right={110}
-        shadow-camera-top={110}
-        shadow-camera-bottom={-110}
+        shadow-camera-left={-100}
+        shadow-camera-right={100}
+        shadow-camera-top={100}
+        shadow-camera-bottom={-100}
         shadow-camera-near={10}
         shadow-camera-far={200}
         shadow-bias={-0.0004}

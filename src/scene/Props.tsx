@@ -1,7 +1,9 @@
 import { useMemo } from 'react'
 import { Instance, Instances } from '@react-three/drei'
 import type { ReactElement } from 'react'
+import type { MeshStandardMaterial } from 'three'
 import { getFootprint } from './archetypes'
+import { getStandardMaterial } from './materials'
 import { mulberry32, pick, randRange } from './util'
 import { useCityStore } from '@/state/store'
 import type { CityData } from '@/city/load'
@@ -268,20 +270,22 @@ function buildItems(spots: Record<PropKind, Spot[]>): Record<string, Item[]> {
   }
 }
 
+/** Props are purely decorative (no event handlers): skip raycasting entirely. */
+const NO_RAYCAST = () => null
+
 function Part({
   geo,
   material,
   items,
 }: {
   geo: ReactElement
-  material: ReactElement
+  material: MeshStandardMaterial
   items: Item[]
 }) {
   if (items.length === 0) return null
   return (
-    <Instances limit={items.length} castShadow receiveShadow>
+    <Instances limit={items.length} castShadow receiveShadow raycast={NO_RAYCAST} material={material} dispose={null}>
       {geo}
-      {material}
       {items.map((item, i) => (
         <Instance
           key={i}
@@ -295,70 +299,38 @@ function Part({
   )
 }
 
+// Shared cached materials — one instance per distinct param set.
+const TRUNK_MAT = getStandardMaterial({ color: '#8a6a4a', roughness: 1, flatShading: true })
+const FOLIAGE_MAT = getStandardMaterial({ roughness: 1, flatShading: true }) // white; per-instance colors tint it
+const LAMP_POST_MAT = getStandardMaterial({ color: '#5a5f66', roughness: 0.6, metalness: 0.4, flatShading: true })
+const LAMP_HEAD_MAT = getStandardMaterial({
+  color: '#f2c14e',
+  emissive: '#f2c14e',
+  emissiveIntensity: 0.4,
+  roughness: 0.4,
+})
+const BENCH_MAT = getStandardMaterial({ color: '#b58a5f', roughness: 1, flatShading: true })
+const BENCH_LEG_MAT = getStandardMaterial({ color: '#93704e', roughness: 1, flatShading: true })
+const HYDRANT_MAT = getStandardMaterial({ color: '#d95f5f', roughness: 0.6, flatShading: true })
+
 export function Props() {
   const city = useCityStore((s) => s.city)
 
   const items = useMemo(() => buildItems(buildSpots(city)), [city])
 
-  const woodMat = <meshStandardMaterial color="#8a6a4a" roughness={1} flatShading />
-  const stoneMat = <meshStandardMaterial color="#5a5f66" roughness={0.6} metalness={0.4} flatShading />
-
   return (
     <group>
-      <Part geo={<cylinderGeometry args={[0.16, 0.22, 1.2, 6]} />} material={woodMat} items={items.trunks} />
-      <Part
-        geo={<icosahedronGeometry args={[1.15, 0]} />}
-        material={<meshStandardMaterial roughness={1} flatShading />}
-        items={items.canopies}
-      />
-      <Part
-        geo={<icosahedronGeometry args={[1.15, 0]} />}
-        material={<meshStandardMaterial roughness={1} flatShading />}
-        items={items.canopyTops}
-      />
-      <Part
-        geo={<coneGeometry args={[1.05, 2.6, 7]} />}
-        material={<meshStandardMaterial roughness={1} flatShading />}
-        items={items.cones}
-      />
-      <Part geo={<cylinderGeometry args={[0.06, 0.09, 2.8, 6]} />} material={stoneMat} items={items.lampPosts} />
-      <Part
-        geo={<sphereGeometry args={[0.22, 10, 8]} />}
-        material={
-          <meshStandardMaterial
-            color="#f2c14e"
-            emissive="#f2c14e"
-            emissiveIntensity={0.4}
-            roughness={0.4}
-          />
-        }
-        items={items.lampHeads}
-      />
-      <Part
-        geo={<boxGeometry args={[1.7, 0.12, 0.55]} />}
-        material={<meshStandardMaterial color="#b58a5f" roughness={1} flatShading />}
-        items={items.benchSeats}
-      />
-      <Part
-        geo={<boxGeometry args={[1.7, 0.5, 0.1]} />}
-        material={<meshStandardMaterial color="#b58a5f" roughness={1} flatShading />}
-        items={items.benchBacks}
-      />
-      <Part
-        geo={<boxGeometry args={[0.12, 0.45, 0.5]} />}
-        material={<meshStandardMaterial color="#93704e" roughness={1} flatShading />}
-        items={items.benchLegs}
-      />
-      <Part
-        geo={<cylinderGeometry args={[0.22, 0.28, 0.65, 8]} />}
-        material={<meshStandardMaterial color="#d95f5f" roughness={0.6} flatShading />}
-        items={items.hydrantBodies}
-      />
-      <Part
-        geo={<sphereGeometry args={[0.16, 8, 6]} />}
-        material={<meshStandardMaterial color="#d95f5f" roughness={0.6} flatShading />}
-        items={items.hydrantCaps}
-      />
+      <Part geo={<cylinderGeometry args={[0.16, 0.22, 1.2, 6]} />} material={TRUNK_MAT} items={items.trunks} />
+      <Part geo={<icosahedronGeometry args={[1.15, 0]} />} material={FOLIAGE_MAT} items={items.canopies} />
+      <Part geo={<icosahedronGeometry args={[1.15, 0]} />} material={FOLIAGE_MAT} items={items.canopyTops} />
+      <Part geo={<coneGeometry args={[1.05, 2.6, 7]} />} material={FOLIAGE_MAT} items={items.cones} />
+      <Part geo={<cylinderGeometry args={[0.06, 0.09, 2.8, 6]} />} material={LAMP_POST_MAT} items={items.lampPosts} />
+      <Part geo={<sphereGeometry args={[0.22, 10, 8]} />} material={LAMP_HEAD_MAT} items={items.lampHeads} />
+      <Part geo={<boxGeometry args={[1.7, 0.12, 0.55]} />} material={BENCH_MAT} items={items.benchSeats} />
+      <Part geo={<boxGeometry args={[1.7, 0.5, 0.1]} />} material={BENCH_MAT} items={items.benchBacks} />
+      <Part geo={<boxGeometry args={[0.12, 0.45, 0.5]} />} material={BENCH_LEG_MAT} items={items.benchLegs} />
+      <Part geo={<cylinderGeometry args={[0.22, 0.28, 0.65, 8]} />} material={HYDRANT_MAT} items={items.hydrantBodies} />
+      <Part geo={<sphereGeometry args={[0.16, 8, 6]} />} material={HYDRANT_MAT} items={items.hydrantCaps} />
     </group>
   )
 }
