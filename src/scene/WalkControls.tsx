@@ -237,6 +237,21 @@ export function WalkControls() {
     }
   }, [active])
 
+  // While pointer-locked, the browser consumes Esc to release the lock
+  // without dispatching keydown, so the HUD's Esc handler never fires. A
+  // lock drop while walking with a place panel open is that Esc: close the
+  // panel. Focus check excludes alt-tab, which also drops the lock.
+  useEffect(() => {
+    if (!active || !isDesktop) return
+    const onLockChange = () => {
+      if (document.pointerLockElement !== null) return
+      const s = useCityStore.getState()
+      if (document.hasFocus() && s.mode === 'walk' && s.selectedId !== null) s.select(null)
+    }
+    document.addEventListener('pointerlockchange', onLockChange)
+    return () => document.removeEventListener('pointerlockchange', onLockChange)
+  }, [active, isDesktop])
+
   // (De)activation: restore last pose on entry, save it on exit.
   useEffect(() => {
     if (!active) return
