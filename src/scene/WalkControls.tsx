@@ -4,6 +4,7 @@ import { PointerLockControls } from '@react-three/drei'
 import type { ThreeEvent } from '@react-three/fiber'
 import { Euler, Mesh, Quaternion, Vector3 } from 'three'
 import { getFootprint } from './archetypes'
+import { buildPropObstacles } from './propSpots'
 import { useCityStore } from '@/state/store'
 
 /**
@@ -11,8 +12,9 @@ import { useCityStore } from '@/state/store'
  *  - fine pointers: pointer-lock mouse look + WASD/arrow keys (shift = run)
  *  - coarse pointers: tap the ground to set a destination, auto-walk there
  *
- * The player capsule collides with building footprints, the fountain and the
- * island rim; eye height rises on district platforms and the plaza paving.
+ * The player capsule collides with building footprints, decorative props,
+ * the fountain and the island rim; eye height rises on district platforms
+ * and the plaza paving.
  */
 
 const EYE_HEIGHT = 2.0
@@ -91,6 +93,8 @@ export function WalkControls() {
         r: getFootprint(p.building).radius * p.scale + 1.4,
       })),
       { x: city.plaza.position[0], z: city.plaza.position[1], r: FOUNTAIN_RADIUS },
+      // Trees, lamps, benches, hydrants — same deterministic spots Props draws.
+      ...buildPropObstacles(city),
     ],
     [city],
   )

@@ -122,7 +122,14 @@ export function Zones() {
       )}
 
       {dashes.length > 0 && (
-        <Instances limit={dashes.length} receiveShadow raycast={NO_RAYCAST} material={DASH_MAT} dispose={null}>
+        <Instances
+          limit={dashes.length}
+          receiveShadow
+          raycast={NO_RAYCAST}
+          material={DASH_MAT}
+          dispose={null}
+          frustumCulled={false}
+        >
           <boxGeometry args={[0.3, 0.05, 1.9]} />
           {dashes.map((dash, i) => (
             <Instance
