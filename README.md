@@ -83,6 +83,7 @@ The site is dual-deployed: the same static `dist/` is published to Cloudflare Pa
 1. One-time: GitHub → repo **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 2. On every push to `main`, the `Deploy GitHub Pages` workflow installs with a frozen lockfile, builds with `BASE_PATH=/portfolio`, and deploys `dist/` via `actions/deploy-pages`.
 3. No `gh-pages` branch. PRs do not publish to GitHub Pages.
+4. After the first green run, open `https://jcmsj.github.io/portfolio/` and confirm assets load under `/portfolio/assets/…`. The workflow uses Node 24.
 
 Local verification of the Pages base path:
 

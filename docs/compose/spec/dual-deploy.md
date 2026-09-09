@@ -1,14 +1,24 @@
 ---
 feature: dual-deploy
-status: in-progress
+status: delivered
 updated: 2026-09-10
 branch: feat/dual-deploy
-commits:
+commits: 65912dd..177d104
 ---
 
 # Dual deployment (Cloudflare Pages + GitHub Pages)
 
 ## Report
+
+**What was built** — Dual deployment without touching the existing Cloudflare Pages project: CF stays dashboard-owned and builds `pnpm build` → `dist` at `/`. A new in-repo workflow (`.github/workflows/deploy-gh-pages.yml`) deploys every `main` push (and manual dispatch) to GitHub Pages project site `https://jcmsj.github.io/portfolio/` with `BASE_PATH=/portfolio`, frozen lockfile install, pnpm `10.11.1` (pinned in both `packageManager` and `pnpm/action-setup`), and `actions/deploy-pages`. README documents the dual-host table, CF keep-as-is settings, and the one-time Pages **Source: GitHub Actions** step. App code needed no changes — Vite `BASE_PATH` / `BASE_URL` already support subpath bases.
+
+**Verification** — `pnpm check:city` PASS; `pnpm typecheck` PASS; root `pnpm build` PASS (`/assets/…` URLs); `BASE_PATH=/portfolio pnpm build` PASS (`/portfolio/assets/…` URLs). Reviewer APPROVE (no CRITICAL/MAJOR); minor Corepack redundancy and doc nits applied before finalize.
+
+**Journey log** —
+- Cloudflare Pages must stay Git-dashboard-owned; adding Wrangler for Pages was explicitly out of scope to avoid fighting the existing project.
+- Dual bases are the same Vite config: no env flag beyond `BASE_PATH`; GH-only on the Pages job.
+- Pin `packageManager` and workflow `pnpm/action-setup` version together (`10.11.1`) so GH matches Cloudflare’s pnpm major.
+- GitHub Pages still needs a one-time repo Settings → Source: GitHub Actions; the workflow cannot flip that alone.
 
 ## [S1] Problem
 
@@ -89,7 +99,7 @@ These are **not** code; record them in README so delivery can be verified:
 
 ## Tasks
 
-- [ ] T1: Add `.github/workflows/deploy-gh-pages.yml` for `main` + `workflow_dispatch` that installs with frozen lockfile, builds with `BASE_PATH=/portfolio`, and deploys `dist` via `actions/deploy-pages` — acceptance: workflow file exists; YAML valid; build step uses frozen install and `BASE_PATH=/portfolio`; deploy uses `actions/deploy-pages`; permissions/concurrency/environment match S2 (covers: S2)
-- [ ] T2: Align package manager pin for CI (either `packageManager` in `package.json` or explicit setup in the workflow) so the GH job uses pnpm 10.x consistent with Cloudflare — acceptance: chosen pin is present in the repo and the workflow enables Corepack/`pnpm` without mutating the lockfile (covers: S2; depends: T1 is not hard; pin can land with T1)
-- [ ] T3: Update README dual-deploy docs (CF stays dashboard-owned; GH Pages workflow + `BASE_PATH`; one-time “Pages source = GitHub Actions” step) — acceptance: README dual-host table and manual setup steps are present and match the workflow (covers: S2)
-- [ ] T4: Verify dual-base builds locally — acceptance: `pnpm install --frozen-lockfile && pnpm build` produces `dist/` with root-relative asset URLs; `BASE_PATH=/portfolio pnpm build` produces asset URLs under `/portfolio/`; `pnpm check:city` and `pnpm typecheck` pass (covers: S2)
+- [x] T1: Add `.github/workflows/deploy-gh-pages.yml` for `main` + `workflow_dispatch` that installs with frozen lockfile, builds with `BASE_PATH=/portfolio`, and deploys `dist` via `actions/deploy-pages` — acceptance: workflow file exists; YAML valid; build step uses frozen install and `BASE_PATH=/portfolio`; deploy uses `actions/deploy-pages`; permissions/concurrency/environment match S2 (covers: S2)
+- [x] T2: Align package manager pin for CI (either `packageManager` in `package.json` or explicit setup in the workflow) so the GH job uses pnpm 10.x consistent with Cloudflare — acceptance: chosen pin is present in the repo and the workflow enables Corepack/`pnpm` without mutating the lockfile (covers: S2; depends: T1 is not hard; pin can land with T1)
+- [x] T3: Update README dual-deploy docs (CF stays dashboard-owned; GH Pages workflow + `BASE_PATH`; one-time “Pages source = GitHub Actions” step) — acceptance: README dual-host table and manual setup steps are present and match the workflow (covers: S2)
+- [x] T4: Verify dual-base builds locally — acceptance: `pnpm install --frozen-lockfile && pnpm build` produces `dist/` with root-relative asset URLs; `BASE_PATH=/portfolio pnpm build` produces asset URLs under `/portfolio/`; `pnpm check:city` and `pnpm typecheck` pass (covers: S2)
