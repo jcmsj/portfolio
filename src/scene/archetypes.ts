@@ -18,6 +18,7 @@ export const BUILDING_SPECS = {
   hall: { radius: 5.0, height: 7 },
   startup: { radius: 3.6, height: 7.5 },
   lab: { radius: 4.2, height: 6 },
+  greenhouse: { radius: 4.5, height: 6.2 },
 } as const satisfies Record<string, { radius: number; height: number }>
 
 export type BuildingKind = keyof typeof BUILDING_SPECS

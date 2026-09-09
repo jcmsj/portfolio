@@ -20,7 +20,7 @@ import { getStandardMaterial } from './materials'
 import { PALETTE, mulberry32, shade } from './util'
 
 /**
- * The 12 building archetypes as flat-shaded primitive compositions.
+ * The 13 building archetypes as flat-shaded primitive compositions.
  *
  * Perf model: every archetype is described as a list of part specs (identical
  * shapes/transforms/colors to the old JSX tree). `MergedParts` bakes the
@@ -652,6 +652,77 @@ const LAB_PARTS: PartSpec[] = (() => {
   ]
 })()
 
+/**
+ * A-frame glass greenhouse: stone knee wall, glass shell, metal ribs,
+ * planting beds, and a ridge vent. Fits Formula Green's in-house lab vibe.
+ */
+const GREENHOUSE_PARTS: PartSpec[] = (() => {
+  // Wall top y = 2.7, ridge y = 5.6 → slope angle & length.
+  const dx = 3.2
+  const dy = 2.9
+  const slant = Math.hypot(dx, dy)
+  const angle = Math.atan2(dy, dx)
+  const ridgeY = 2.7 + dy
+  const plantA = '#4f9a3e'
+  const plantB = '#3f7d32'
+  const parts: PartSpec[] = [
+    // knee wall + sill
+    box(PALETTE.stone, [6.4, 0.5, 4.2], [0, 0.25, 0], { cast: true }),
+    box(PALETTE.woodDark, [6.5, 0.14, 4.3], [0, 0.55, 0]),
+    // glass walls
+    box(PALETTE.window, [6.0, 2.2, 0.1], [0, 1.7, 2.05], { win: true }),
+    box(PALETTE.window, [6.0, 2.2, 0.1], [0, 1.7, -2.05], { win: true }),
+    box(PALETTE.window, [0.1, 2.2, 4.0], [3.15, 1.7, 0], { win: true }),
+    box(PALETTE.window, [0.1, 2.2, 4.0], [-3.15, 1.7, 0], { win: true }),
+    // A-frame glass roof
+    box(PALETTE.window, [slant, 0.08, 4.0], [-dx / 2, 2.7 + dy / 2, 0], { r: [0, 0, angle], win: true }),
+    box(PALETTE.window, [slant, 0.08, 4.0], [dx / 2, 2.7 + dy / 2, 0], { r: [0, 0, -angle], win: true }),
+    // ridge beam + vent
+    box(PALETTE.woodDark, [0.22, 0.18, 4.25], [0, ridgeY + 0.05, 0], { cast: true }),
+    box(PALETTE.metal, [0.7, 0.45, 0.7], [0, ridgeY + 0.35, -0.6]),
+    cyl('accent', 0.28, 0.28, 0.2, [0, ridgeY + 0.68, -0.6], { seg: 8, accent: true }),
+    // door + accent awning
+    box(PALETTE.woodDark, [1.15, 1.9, 0.14], [0, 0.95, 2.12]),
+    box('accent', [1.45, 0.16, 0.5], [0, 2.0, 2.28], { accent: true, cast: true }),
+    // raised planting beds
+    box(PALETTE.wood, [5.2, 0.38, 0.75], [0, 0.74, 0.95], { cast: true }),
+    box(PALETTE.wood, [5.2, 0.38, 0.75], [0, 0.74, -0.95], { cast: true }),
+  ]
+  // mullions front/back
+  for (const x of [-3.2, -1.6, 1.6, 3.2]) {
+    parts.push(cyl(PALETTE.metal, 0.05, 0.05, 2.25, [x, 1.68, 2.08], { seg: 6 }))
+    parts.push(cyl(PALETTE.metal, 0.05, 0.05, 2.25, [x, 1.68, -2.08], { seg: 6 }))
+  }
+  // corner posts + side mid post
+  for (const [x, z] of [
+    [-3.2, 2.08],
+    [3.2, 2.08],
+    [-3.2, -2.08],
+    [3.2, -2.08],
+  ] as const) {
+    parts.push(cyl(PALETTE.metal, 0.07, 0.07, 2.25, [x, 1.68, z], { seg: 6, cast: true }))
+  }
+  for (const x of [-3.2, 3.2]) {
+    parts.push(cyl(PALETTE.metal, 0.05, 0.05, 2.25, [x, 1.68, 0], { seg: 6 }))
+  }
+  // roof ribs at three stations along the ridge
+  for (const z of [-1.5, 0, 1.5]) {
+    parts.push(cyl(PALETTE.metal, 0.04, 0.04, slant, [-dx / 2, 2.7 + dy / 2, z], { seg: 6, r: [0, 0, angle] }))
+    parts.push(cyl(PALETTE.metal, 0.04, 0.04, slant, [dx / 2, 2.7 + dy / 2, z], { seg: 6, r: [0, 0, -angle] }))
+  }
+  // plant clumps
+  for (const z of [-0.95, 0.95]) {
+    for (const x of [-2.0, -0.7, 0.7, 2.0]) {
+      parts.push(cyl(plantB, 0.12, 0.16, 0.28, [x, 1.07, z], { seg: 6 }))
+      parts.push(sph(plantA, 0.28, [x, 1.32, z], { seg: 8 }))
+      if (Math.abs(x) < 1) {
+        parts.push(sph(plantB, 0.2, [x + 0.18, 1.22, z + 0.1], { seg: 8 }))
+      }
+    }
+  }
+  return parts
+})()
+
 /* ------------------------------------------------------------------ */
 /* Archetypes                                                          */
 /* ------------------------------------------------------------------ */
@@ -753,6 +824,10 @@ function Lab({ accent, soft, seed }: ArchetypeProps) {
   return <BuildingParts kind="lab" seed={seed} accent={accent} soft={soft} parts={LAB_PARTS} />
 }
 
+function Greenhouse({ accent, soft, seed }: ArchetypeProps) {
+  return <BuildingParts kind="greenhouse" seed={seed} accent={accent} soft={soft} parts={GREENHOUSE_PARTS} />
+}
+
 /* ------------------------------------------------------------------ */
 
 export const ARCHETYPES: Record<BuildingKind, ComponentType<ArchetypeProps>> = {
@@ -768,4 +843,5 @@ export const ARCHETYPES: Record<BuildingKind, ComponentType<ArchetypeProps>> = {
   hall: Hall,
   startup: Startup,
   lab: Lab,
+  greenhouse: Greenhouse,
 }

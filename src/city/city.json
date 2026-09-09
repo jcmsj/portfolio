@@ -26,7 +26,7 @@
     {
       "id": "experience",
       "name": "Internship Harbor",
-      "blurb": "Ships came in here: cloud engineering at CTP and fullstack work at TIP QC.",
+      "blurb": "Ships came in here — cloud at CTP, fullstack at TIP QC, and growing in-house tools at Formula Green.",
       "position": [
         44,
         -30
@@ -149,6 +149,20 @@
       "rotationY": 0.8,
       "scale": 1,
       "label": "internship"
+    },
+    {
+      "id": "formula-green",
+      "zone": "experience",
+      "name": "Formula Green",
+      "subtitle": "Software Developer · in-house apps & websites",
+      "building": "greenhouse",
+      "position": [
+        50,
+        -22
+      ],
+      "rotationY": -0.45,
+      "scale": 1,
+      "label": "2025 — present"
     },
     {
       "id": "cloudflare-log-insights",

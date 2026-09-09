@@ -46,6 +46,7 @@ export const BUILDING_LABELS: Record<BuildingKind, string> = {
   hall: 'Community Hall',
   startup: 'Startup Office',
   lab: 'Research Lab',
+  greenhouse: 'Greenhouse',
 }
 
 export const buildingLabel = (kind: BuildingKind): string =>
