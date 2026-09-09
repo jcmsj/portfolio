@@ -2,7 +2,7 @@
 period: live app
 links:
   - label: Try it out
-    url: https://beta.vuk.pages.dev
+    url: https://vuk-workspace.pages.dev
 ---
 
 ![Vuk](/assets/vuk.png)
