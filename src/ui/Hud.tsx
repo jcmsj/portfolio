@@ -6,7 +6,7 @@ import { LoadingScreen } from './LoadingScreen'
 import { Minimap } from './Minimap'
 import { MobileWalkControls } from './MobileWalkControls'
 import { PlacePanel } from './PlacePanel'
-import { useMediaQuery } from './hooks'
+import { useFullscreen, useMediaQuery } from './hooks'
 
 /**
  * 2D UI layer over the 3D city: identity chip, minimap, mode toggle,
@@ -23,6 +23,50 @@ const modeButtonClass = (active: boolean) =>
   `cursor-pointer select-none rounded-full px-4 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${
     active ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
   }`
+
+const iconSvgClass = 'h-4.5 w-4.5'
+
+/** Enter-fullscreen glyph (feather "maximize-2"). */
+function ExpandIcon() {
+  return (
+    <svg
+      className={iconSvgClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="15 3 21 3 21 9" />
+      <polyline points="9 21 3 21 3 15" />
+      <line x1="21" y1="3" x2="14" y2="10" />
+      <line x1="3" y1="21" x2="10" y2="14" />
+    </svg>
+  )
+}
+
+/** Exit-fullscreen glyph (feather "minimize-2"). */
+function CollapseIcon() {
+  return (
+    <svg
+      className={iconSvgClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="4 14 10 14 10 20" />
+      <polyline points="20 10 14 10 14 4" />
+      <line x1="14" y1="10" x2="21" y2="3" />
+      <line x1="3" y1="21" x2="10" y2="14" />
+    </svg>
+  )
+}
 
 /** Don't hijack keys while the user is typing somewhere. */
 function isEditableTarget(target: EventTarget | null): boolean {
@@ -48,6 +92,7 @@ export function Hud() {
 
   const [helpOpen, setHelpOpen] = useState(false)
   const coarse = useMediaQuery('(pointer: coarse)')
+  const { mode: fullscreen, toggle: toggleFullscreen } = useFullscreen()
 
   // Never pop help over the visual editor, whatever its state is.
   const helpVisible = !editing && (helpOpen || !helpDismissed)
@@ -62,18 +107,23 @@ export function Hud() {
       if (isEditableTarget(e.target)) return
 
       if (e.key === 'Escape') {
+        // Native fullscreen: the browser exits on its own — one action per Esc.
+        if (fullscreen === 'native') return
         if (helpVisible) closeHelp()
         else if (listOpen) toggleList()
         else if (selectedId) select(null)
+        else if (fullscreen === 'pseudo') toggleFullscreen()
         else if (mode === 'walk') setMode('orbit')
       } else if (e.key === 'v' || e.key === 'V') {
         toggleMode()
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen()
       }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editing, helpVisible, listOpen, selectedId, mode, select, setMode, toggleList, toggleMode, dismissHelp])
+  }, [editing, helpVisible, listOpen, selectedId, mode, fullscreen, select, setMode, toggleList, toggleMode, toggleFullscreen, dismissHelp])
 
   const hint =
     mode === 'orbit'
@@ -85,7 +135,7 @@ export function Hud() {
   return (
     <div className="pointer-events-none fixed inset-0 z-30">
       {/* Top-left: city identity (non-interactive — drags pass through to the scene) */}
-      <div className="panel-glass absolute left-3 top-3 max-w-[70vw] select-none rounded-2xl px-4 py-3 sm:left-4 sm:top-4">
+      <div className="hud-passive panel-glass absolute left-3 top-3 max-w-[70vw] select-none rounded-2xl px-4 py-3 sm:left-4 sm:top-4">
         <h1 className="text-lg font-bold leading-tight text-slate-800">{cityName}</h1>
         <p className="text-xs text-slate-500">{tagline}</p>
       </div>
@@ -96,7 +146,9 @@ export function Hud() {
           editing ? 'pointer-events-none opacity-40' : ''
         }`}
       >
-        <Minimap />
+        <div className="hud-passive">
+          <Minimap />
+        </div>
         <div className="pointer-events-auto flex flex-col gap-2">
           <button
             type="button"
@@ -115,6 +167,16 @@ export function Hud() {
             onClick={() => setHelpOpen(true)}
           >
             ?
+          </button>
+          <button
+            type="button"
+            aria-label={fullscreen === 'off' ? 'Enter fullscreen' : 'Exit fullscreen'}
+            aria-pressed={fullscreen !== 'off'}
+            className={iconButtonClass}
+            disabled={editing}
+            onClick={toggleFullscreen}
+          >
+            {fullscreen === 'off' ? <ExpandIcon /> : <CollapseIcon />}
           </button>
         </div>
       </div>
@@ -140,7 +202,7 @@ export function Hud() {
               🚶 Walk
             </button>
           </div>
-          <p className="pointer-events-none rounded-full bg-white/55 px-3 py-0.5 text-xs text-slate-600 backdrop-blur-sm">
+          <p className="hud-passive pointer-events-none rounded-full bg-white/55 px-3 py-0.5 text-xs text-slate-600 backdrop-blur-sm">
             {hint}
           </p>
         </div>

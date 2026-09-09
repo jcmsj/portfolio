@@ -32,6 +32,20 @@ canvas {
     0 12px 32px -12px rgb(15 40 60 / 0.35);
 }
 
+/* Immersive fallback for browsers without the Fullscreen API (iPhone
+   Safari): <html class="nsj-immersive"> fades out passive HUD chrome while
+   interactive controls (mode toggle, buttons, joystick) stay put. */
+.hud-passive {
+  transition:
+    opacity 250ms ease,
+    visibility 250ms;
+}
+.nsj-immersive .hud-passive {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }

@@ -56,6 +56,10 @@ export function HelpOverlay({ open, onClose }: HelpOverlayProps) {
                 Tap the <strong className="font-semibold text-slate-800">minimap</strong> to fly
                 straight to a district.
               </li>
+              <li>
+                Tap the <strong className="font-semibold text-slate-800">fullscreen</strong>{' '}
+                button (top right) for a more immersive view.
+              </li>
             </>
           ) : (
             <>
@@ -74,6 +78,10 @@ export function HelpOverlay({ open, onClose }: HelpOverlayProps) {
               </li>
               <li>
                 <kbd className={kbdClass}>Esc</kbd> closes panels and exits Walk.
+              </li>
+              <li>
+                Press <kbd className={kbdClass}>F</kbd> to toggle fullscreen for a fully
+                immersive view.
               </li>
               <li>
                 Click the <strong className="font-semibold text-slate-800">minimap</strong> to fly
