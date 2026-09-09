@@ -123,7 +123,27 @@ function Fountain() {
   )
 }
 
+/** White face of the panel: 10.2 × 4.2, centered in the slanted panel group. */
+const FACE_W = 10.2
+const FACE_H = 4.2
+const TEXT_Z = 0.26
+const TEXT_MAX_W = FACE_W - 0.7
+const FACE_PAD = 0.22
+
+/** Shrink the title so a long city name still sits on one line inside the face. */
+function fitTitleSize(name: string): number {
+  // ~0.55em average advance covers the faux-bold outline stroke; 8% headroom
+  // keeps "New San Juan" off a wrap.
+  const est = Math.max(name.length, 1) * 0.55
+  return Math.min(1.3, (TEXT_MAX_W / est) * 0.92)
+}
+
 function HeroBillboard({ name, tagline }: { name: string; tagline: string }) {
+  const titleSize = fitTitleSize(name)
+  // Title sits in the upper half; tagline flows under it, both inside the face.
+  const titleH = titleSize * 1.15
+  const titleY = FACE_H / 2 - FACE_PAD - titleH / 2
+  const taglineY = titleY - titleH / 2 - 0.12
   return (
     <group position={[6, PLAZA_TOP, 6]} rotation-y={Math.PI / 4}>
       <MergedParts cacheKey="plaza-billboard-frame" parts={BILLBOARD_FRAME_PARTS} />
@@ -132,24 +152,28 @@ function HeroBillboard({ name, tagline }: { name: string; tagline: string }) {
         <MergedParts cacheKey="plaza-billboard-panel" parts={BILLBOARD_PANEL_PARTS} />
         {/* faux-bold title: dark outline in the fill color thickens strokes */}
         <Text
-          fontSize={2.1}
+          fontSize={titleSize}
           color="#1f2937"
-          outlineWidth={0.09}
+          outlineWidth={titleSize * 0.045}
           outlineColor="#1f2937"
-          anchorY="bottom"
-          position={[0, 0.55, 0.26]}
-          maxWidth={9.6}
+          anchorX="center"
+          anchorY="middle"
           textAlign="center"
+          lineHeight={1.1}
+          position={[0, titleY, TEXT_Z]}
+          maxWidth={TEXT_MAX_W}
         >
           {name}
         </Text>
         <Text
-          fontSize={0.85}
+          fontSize={0.5}
           color="#475569"
+          anchorX="center"
           anchorY="top"
-          position={[0, 0.3, 0.26]}
-          maxWidth={9.6}
           textAlign="center"
+          lineHeight={1.28}
+          position={[0, taglineY, TEXT_Z]}
+          maxWidth={TEXT_MAX_W}
         >
           {tagline}
         </Text>
