@@ -62,17 +62,33 @@ middleware (`plugins/citySave.ts`), so your changes appear as ordinary git
 diffs. The editor is compiled out of production builds entirely — the
 deployed site never ships it.
 
-## Deploying (Cloudflare Pages)
+## Deploying
 
-1. Push this branch / merge it.
-2. In Cloudflare → **Workers & Pages → Create → Pages → Connect to Git**,
-   pick this repo.
-3. Build settings: framework preset **Vite** (or none), build command
-   `pnpm build`, output directory `dist`.
-4. Deploy — every push to the production branch auto-deploys; PRs get
-   preview URLs.
+The site is dual-deployed: the same static `dist/` is published to Cloudflare Pages and GitHub Pages on every push to `main`.
 
-Any static host (Netlify, GitHub Pages, S3…) works the same way: upload
-`dist/`. For a GitHub Pages **project** site served under `/<repo>/`, set
-`BASE_PATH=/portfolio` (or your repo name) when building so Vite emits
-subpath-safe asset URLs.
+| Host | URL | Base path | How it builds |
+|------|-----|-----------|----------------|
+| Cloudflare Pages | existing Pages project (Git-connected) | `/` | Dashboard: `pnpm install` + `pnpm build` → `dist` |
+| GitHub Pages | `https://jcmsj.github.io/portfolio/` | `/portfolio` | `.github/workflows/deploy-gh-pages.yml` |
+
+### Cloudflare Pages (keep as-is)
+
+1. Push / merge to `main`.
+2. Cloudflare → **Workers & Pages** → this project → build settings: framework preset **Vite** (or none), command `pnpm build`, output `dist`.
+3. Do **not** set `BASE_PATH` on Cloudflare — the site is served from the root.
+4. Every push to the production branch auto-deploys; PRs can get preview URLs if enabled in the dashboard.
+
+### GitHub Pages
+
+1. One-time: GitHub → repo **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+2. On every push to `main`, the `Deploy GitHub Pages` workflow installs with a frozen lockfile, builds with `BASE_PATH=/portfolio`, and deploys `dist/` via `actions/deploy-pages`.
+3. No `gh-pages` branch. PRs do not publish to GitHub Pages.
+
+Local verification of the Pages base path:
+
+```bash
+BASE_PATH=/portfolio pnpm build   # asset URLs under /portfolio/
+pnpm build                        # Cloudflare-style root build
+```
+
+Any static host (Netlify, S3…) works the same way: upload `dist/`.
