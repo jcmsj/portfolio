@@ -4,5 +4,8 @@ dist-ssr
 *.local
 .DS_Store
 
+# Wrangler local state
+.wrangler
+
 # Editor backups / drafts
 *.bak

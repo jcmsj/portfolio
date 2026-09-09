@@ -64,19 +64,20 @@ deployed site never ships it.
 
 ## Deploying
 
-The site is dual-deployed: the same static `dist/` is published to Cloudflare Pages and GitHub Pages on every push to `main`.
+The site is dual-deployed: the same static `dist/` is published to Cloudflare Workers (static assets) and GitHub Pages on every push to `main`.
 
 | Host | URL | Base path | How it builds |
 |------|-----|-----------|----------------|
-| Cloudflare Pages | existing Pages project (Git-connected) | `/` | Dashboard: `pnpm install` + `pnpm build` → `dist` |
+| Cloudflare Workers | `https://portfolio.<subdomain>.workers.dev` | `/` | Workers Builds (Git-connected): `pnpm build` → `dist`, deployed via `wrangler.jsonc` |
 | GitHub Pages | `https://jcmsj.github.io/portfolio/` | `/portfolio` | `.github/workflows/deploy-gh-pages.yml` |
 
-### Cloudflare Pages (keep as-is)
+### Cloudflare Workers (static assets)
 
-1. Push / merge to `main`.
-2. Cloudflare → **Workers & Pages** → this project → build settings: framework preset **Vite** (or none), command `pnpm build`, output `dist`.
-3. Do **not** set `BASE_PATH` on Cloudflare — the site is served from the root.
-4. Every push to the production branch auto-deploys; PRs can get preview URLs if enabled in the dashboard.
+1. `wrangler.jsonc` at the repo root defines an assets-only Worker named **portfolio**: no Worker script (`main`), it serves `dist/` with a `single-page-application` fallback (unknown paths return `index.html` with 200). Requests never invoke a Worker, so there is nothing to bill.
+2. The config is committed, so Workers Builds skips framework auto-detection — the dashboard never generates (or overwrites) one.
+3. Dashboard build settings — Cloudflare → **Workers & Pages → portfolio → Settings → Builds**: build command `pnpm build`, deploy command `npx wrangler deploy`. Dependencies install automatically (the build image ships pnpm 10.11.1, matching `packageManager`). Do **not** use a `--filter` command: this is a single-package repo (`packages: ['.']`), so pnpm filters match no projects.
+4. Do **not** set `BASE_PATH` on Cloudflare — the site is served from the root.
+5. Local equivalents: `pnpm preview:workers` (serve `dist/` through `wrangler dev`) and `pnpm deploy:workers` (build + `wrangler deploy`; needs `wrangler login`).
 
 ### GitHub Pages
 

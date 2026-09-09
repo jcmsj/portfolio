@@ -8,6 +8,12 @@ commits: 65912dd..177d104
 
 # Dual deployment (Cloudflare Pages + GitHub Pages)
 
+> **Superseded in part (2026-09-10):** the Cloudflare side has since moved
+> from Pages to a Workers static-assets deployment — see
+> [`workers-static-assets.md`](workers-static-assets.md) and the README
+> "Deploying" section. The GitHub Pages side of this spec still applies
+> unchanged.
+
 ## Report
 
 **What was built** — Dual deployment without touching the existing Cloudflare Pages project: CF stays dashboard-owned and builds `pnpm build` → `dist` at `/`. A new in-repo workflow (`.github/workflows/deploy-gh-pages.yml`) deploys every `main` push (and manual dispatch) to GitHub Pages project site `https://jcmsj.github.io/portfolio/` with `BASE_PATH=/portfolio`, frozen lockfile install, pnpm `10.11.1` (pinned in both `packageManager` and `pnpm/action-setup`), and `actions/deploy-pages`. README documents the dual-host table, CF keep-as-is settings, and the one-time Pages **Source: GitHub Actions** step. App code needed no changes — Vite `BASE_PATH` / `BASE_URL` already support subpath bases.

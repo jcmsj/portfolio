@@ -1,12 +1,14 @@
-# Single-package project; Cloudflare Pages pins pnpm@10.11.1, which
-# requires a non-empty `packages` field when this file exists.
+# Single-package project; Cloudflare Workers Builds ships pnpm 10.11.1,
+# which requires a non-empty `packages` field when this file exists.
 packages:
   - '.'
 
 # pnpm ≥10.26 (and pnpm 11+)
 allowBuilds:
   esbuild: true
+  workerd: true
 
-# pnpm <10.26 (Cloudflare Pages currently ships 10.11.1)
+# pnpm <10.26 (Cloudflare Workers Builds currently ships 10.11.1)
 onlyBuiltDependencies:
   - esbuild
+  - workerd
