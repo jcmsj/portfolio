@@ -5,12 +5,14 @@ import type { ThreeEvent } from '@react-three/fiber'
 import { Euler, Mesh, Quaternion, Vector3 } from 'three'
 import { getFootprint } from './archetypes'
 import { buildPropObstacles } from './propSpots'
+import { resetWalkInput, sceneClickSuppressed, suppressSceneClick, walkInput } from './walkInput'
 import { useCityStore } from '@/state/store'
+import { useMediaQuery } from '@/ui/hooks'
 
 /**
  * Walk mode: first-person strolling.
  *  - fine pointers: pointer-lock mouse look + WASD/arrow keys (shift = run)
- *  - coarse pointers: tap the ground to set a destination, auto-walk there
+ *  - coarse pointers: joystick move + drag look + tap the ground to auto-walk
  *
  * The player capsule collides with building footprints, decorative props,
  * the fountain and the island rim; eye height rises on district platforms
@@ -26,6 +28,9 @@ const PLAZA_RADIUS = 11
 const PLAZA_LIFT = 0.35
 const PLATFORM_LIFT = 0.5
 const KEY_DAMPING = 8
+const LOOK_SENS = 0.005
+const PITCH_LIMIT = 1.25
+const LOOK_DRAG_PX = 8
 
 const MOVE_KEYS = new Set([
   'KeyW',
@@ -58,13 +63,11 @@ interface Obstacle {
 export function WalkControls() {
   const mode = useCityStore((s) => s.mode)
   const city = useCityStore((s) => s.city)
+  const gl = useThree((s) => s.gl)
   const camera = useThree((s) => s.camera)
   const active = mode === 'walk'
 
-  const isDesktop = useMemo(
-    () => typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches,
-    [],
-  )
+  const isDesktop = useMediaQuery('(pointer: fine)')
 
   const plcRef = useRef<ComponentRef<typeof PointerLockControls>>(null)
   const markerRef = useRef<Mesh>(null)
@@ -145,16 +148,20 @@ export function WalkControls() {
 
     const w = walker.current
     const k = w.keys
-    const fwd =
+    const keyFwd =
       (k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) - (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0)
-    const strafe =
+    const keyStrafe =
       (k.has('KeyD') || k.has('ArrowRight') ? 1 : 0) - (k.has('KeyA') || k.has('ArrowLeft') ? 1 : 0)
+    // Joystick analog wins when non-zero; keyboard remains ±1 / diagonal.
+    const fwd = walkInput.y !== 0 ? walkInput.y : keyFwd
+    const strafe = walkInput.x !== 0 ? walkInput.x : keyStrafe
+    const mag = Math.hypot(fwd, strafe)
     const speed = w.shift ? RUN_SPEED : WALK_SPEED
     const locked = !isDesktop || (plcRef.current?.isLocked ?? false)
 
     if (isDesktop && !locked) {
       // Waiting for the pointer lock click — hold position.
-    } else if (fwd !== 0 || strafe !== 0) {
+    } else if (mag > 1e-4) {
       if (w.dest) {
         w.dest = null
         setDest(null)
@@ -164,8 +171,11 @@ export function WalkControls() {
       if (forward.current.lengthSq() < 1e-6) forward.current.set(0, 0, -1)
       forward.current.normalize()
       rightV.current.crossVectors(forward.current, upV.current)
-      w.pos.addScaledVector(forward.current, fwd * speed * delta)
-      w.pos.addScaledVector(rightV.current, strafe * speed * delta)
+      // Unit direction * min(1, mag): keyboard diagonal isn't faster; stick scales.
+      const clamped = Math.min(1, mag)
+      const step = speed * clamped * delta
+      w.pos.addScaledVector(forward.current, (fwd / mag) * step)
+      w.pos.addScaledVector(rightV.current, (strafe / mag) * step)
     } else if (w.dest) {
       const dx = w.dest.x - w.pos.x
       const dz = w.dest.z - w.pos.z
@@ -245,11 +255,71 @@ export function WalkControls() {
       w.quat.copy(camera.quaternion)
       w.dest = null
       setDest(null)
+      resetWalkInput()
     }
   }, [active, camera, groundHeight])
 
+  // Coarse-pointer drag look on the canvas (joystick lives in the HTML HUD).
+  useEffect(() => {
+    if (!active || isDesktop) return
+    const el = gl.domElement
+    let pointerId: number | null = null
+    let lastX = 0
+    let lastY = 0
+    let startX = 0
+    let startY = 0
+    let dragging = false
+
+    const onDown = (e: PointerEvent) => {
+      if (useCityStore.getState().editing) return
+      // Primary finger only; joystick uses its own overlay.
+      if (e.button !== 0 && e.pointerType === 'mouse') return
+      pointerId = e.pointerId
+      lastX = startX = e.clientX
+      lastY = startY = e.clientY
+      dragging = false
+      el.setPointerCapture(e.pointerId)
+    }
+    const onMove = (e: PointerEvent) => {
+      if (pointerId !== e.pointerId) return
+      const dx = e.clientX - lastX
+      const dy = e.clientY - lastY
+      lastX = e.clientX
+      lastY = e.clientY
+      if (!dragging) {
+        const total = Math.hypot(e.clientX - startX, e.clientY - startY)
+        if (total < LOOK_DRAG_PX) return
+        dragging = true
+      }
+      const eul = eulerTmp.current.setFromQuaternion(camera.quaternion, 'YXZ')
+      eul.y -= dx * LOOK_SENS
+      eul.x -= dy * LOOK_SENS
+      eul.x = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, eul.x))
+      eul.z = 0
+      camera.quaternion.setFromEuler(eul)
+    }
+    const onUp = (e: PointerEvent) => {
+      if (pointerId !== e.pointerId) return
+      if (dragging) suppressSceneClick()
+      if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId)
+      pointerId = null
+      dragging = false
+    }
+    el.addEventListener('pointerdown', onDown)
+    el.addEventListener('pointermove', onMove)
+    el.addEventListener('pointerup', onUp)
+    el.addEventListener('pointercancel', onUp)
+    return () => {
+      el.removeEventListener('pointerdown', onDown)
+      el.removeEventListener('pointermove', onMove)
+      el.removeEventListener('pointerup', onUp)
+      el.removeEventListener('pointercancel', onUp)
+    }
+  }, [active, isDesktop, gl, camera])
+
   const onTap = (event: ThreeEvent<MouseEvent>) => {
     if (!active || isDesktop) return
+    if (sceneClickSuppressed()) return
     const x = event.point.x
     const z = event.point.z
     const dc = Math.hypot(x, z)

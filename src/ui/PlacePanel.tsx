@@ -4,12 +4,12 @@ import type { Components } from 'react-markdown'
 import { mdRawById, parsePlaceMd } from '@/city/load'
 import type { PlaceContent } from '@/city/load'
 import { useCityStore } from '@/state/store'
-import { usePrefersReducedMotion } from './hooks'
+import { useMediaQuery, usePrefersReducedMotion } from './hooks'
 
 /**
- * Right slide-over showing the story of the selected place — or, when the
- * plaza is selected, the "about me" page rendered straight from its
- * frontmattered markdown.
+ * Story surface for the selected place (or the plaza "about" page).
+ * Fine pointers: right slide-over drawer. Coarse pointers (phones/tablets,
+ * including landscape): centered floating card so the city stays visible.
  */
 
 const PLAZA_ACCENT = '#d97706'
@@ -55,6 +55,8 @@ export function PlacePanel() {
   const select = useCityStore((s) => s.select)
   const editing = useCityStore((s) => s.editing)
   const reduceMotion = usePrefersReducedMotion()
+  // Landscape phones often exceed `sm:` width — drive layout from pointer type.
+  const coarse = useMediaQuery('(pointer: coarse)')
 
   const isPlaza = selectedId !== null && selectedId === city.plaza.contentId
   const place =
@@ -107,9 +109,20 @@ export function PlacePanel() {
       aria-modal="true"
       aria-label={ariaLabel}
       inert={!open}
-      className={`panel-glass fixed right-0 top-0 z-40 flex h-full w-full flex-col rounded-l-2xl sm:w-[min(420px,92vw)] ${
-        open ? 'pointer-events-auto translate-x-0' : 'pointer-events-none translate-x-full'
-      } ${reduceMotion ? '' : 'transition-transform duration-300 ease-out'}`}
+      onPointerDown={(e) => e.stopPropagation()}
+      className={
+        coarse
+          ? `panel-glass fixed left-1/2 top-1/2 z-40 flex w-[min(420px,92vw)] max-h-[min(78vh,100%)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-2xl ${
+              open
+                ? 'pointer-events-auto opacity-100'
+                : 'pointer-events-none opacity-0'
+            } ${reduceMotion ? '' : 'transition-all duration-300 ease-out'}`
+          : `panel-glass fixed right-0 top-0 z-40 flex h-full w-[min(420px,92vw)] flex-col rounded-l-2xl ${
+              open
+                ? 'pointer-events-auto translate-x-0'
+                : 'pointer-events-none translate-x-full'
+            } ${reduceMotion ? '' : 'transition-transform duration-300 ease-out'}`
+      }
     >
       {/* header */}
       <header className="flex items-start justify-between gap-3 border-b border-white/70 px-5 pb-3 pt-4">

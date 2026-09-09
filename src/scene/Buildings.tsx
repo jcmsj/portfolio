@@ -7,6 +7,7 @@ import { easing } from 'maath'
 import { ARCHETYPES } from './buildingKinds'
 import { getFootprint } from './archetypes'
 import { hashString, shade } from './util'
+import { sceneClickSuppressed } from './walkInput'
 import { useCityStore } from '@/state/store'
 import type { LoadedPlace } from '@/city/load'
 import type { Zone } from '@/city/schema'
@@ -90,6 +91,7 @@ function Building({ entry }: { entry: BuildingEntry }) {
   const onClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation()
     if (useCityStore.getState().editing) return
+    if (sceneClickSuppressed()) return
     useCityStore.getState().select(place.id)
   }
 

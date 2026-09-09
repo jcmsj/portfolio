@@ -7,6 +7,7 @@ import { MergedParts, box, cone, cyl, ring, sph } from './buildingKinds'
 import type { PartSpec } from './buildingKinds'
 import { PALETTE } from './util'
 import { getStandardMaterial } from './materials'
+import { sceneClickSuppressed } from './walkInput'
 import { useCityStore } from '@/state/store'
 
 /**
@@ -202,6 +203,7 @@ export function Plaza() {
   const onClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation()
     if (useCityStore.getState().editing) return
+    if (sceneClickSuppressed()) return
     useCityStore.getState().select(city.plaza.contentId)
   }
 

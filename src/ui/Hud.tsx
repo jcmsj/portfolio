@@ -4,6 +4,7 @@ import { HelpOverlay } from './HelpOverlay'
 import { ListView } from './ListView'
 import { LoadingScreen } from './LoadingScreen'
 import { Minimap } from './Minimap'
+import { MobileWalkControls } from './MobileWalkControls'
 import { PlacePanel } from './PlacePanel'
 import { useMediaQuery } from './hooks'
 
@@ -78,7 +79,7 @@ export function Hud() {
     mode === 'orbit'
       ? 'Drag to orbit · scroll to zoom · click a building'
       : coarse
-        ? 'Tap the ground to walk there'
+        ? 'Joystick to move · drag to look · tap ground to walk'
         : 'WASD to walk · Esc to exit'
 
   return (
@@ -146,6 +147,7 @@ export function Hud() {
       )}
 
       <PlacePanel />
+      <MobileWalkControls />
       <ListView />
       <HelpOverlay open={helpVisible} onClose={closeHelp} />
       <LoadingScreen />
