@@ -1,2 +1,12 @@
+# Single-package project; Cloudflare Pages pins pnpm@10.11.1, which
+# requires a non-empty `packages` field when this file exists.
+packages:
+  - '.'
+
+# pnpm ≥10.26 (and pnpm 11+)
 allowBuilds:
   esbuild: true
+
+# pnpm <10.26 (Cloudflare Pages currently ships 10.11.1)
+onlyBuiltDependencies:
+  - esbuild
