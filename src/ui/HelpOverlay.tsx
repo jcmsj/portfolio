@@ -80,6 +80,10 @@ export function HelpOverlay({ open, onClose }: HelpOverlayProps) {
                 <kbd className={kbdClass}>Esc</kbd> closes panels and exits Walk.
               </li>
               <li>
+                Hold <kbd className={kbdClass}>⌘</kbd> or <kbd className={kbdClass}>Ctrl</kbd> while
+                walking to free the mouse for the panel — click the ground to look around again.
+              </li>
+              <li>
                 Press <kbd className={kbdClass}>F</kbd> to toggle fullscreen for a fully
                 immersive view.
               </li>

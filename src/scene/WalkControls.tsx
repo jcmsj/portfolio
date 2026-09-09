@@ -70,6 +70,9 @@ export function WalkControls() {
   const isDesktop = useMediaQuery('(pointer: fine)')
 
   const plcRef = useRef<ComponentRef<typeof PointerLockControls>>(null)
+  // Set when the lock is dropped via ⌘/Ctrl so the lock-drop handler can tell
+  // that intentional unlock apart from an Esc dismissal.
+  const cursorFreed = useRef(false)
   const markerRef = useRef<Mesh>(null)
   const [dest, setDest] = useState<{ x: number; z: number; y: number } | null>(null)
 
@@ -237,20 +240,50 @@ export function WalkControls() {
     }
   }, [active])
 
+  // Hold ⌘/Ctrl while walking to get the cursor back for the panel and HUD.
+  // The lock re-engages on the next canvas click, as on walk entry.
+  useEffect(() => {
+    if (!active || !isDesktop) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Meta' && e.key !== 'Control') return
+      if (document.pointerLockElement === null) return
+      cursorFreed.current = true
+      document.exitPointerLock()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      cursorFreed.current = false
+    }
+  }, [active, isDesktop])
+
   // While pointer-locked, the browser consumes Esc to release the lock
   // without dispatching keydown, so the HUD's Esc handler never fires. A
   // lock drop while walking with a place panel open is that Esc: close the
-  // panel. Focus check excludes alt-tab, which also drops the lock.
+  // panel — unless it was a ⌘/Ctrl unlock, which asks for the cursor, not
+  // a dismissal. Focus check excludes alt-tab, which also drops the lock.
   useEffect(() => {
     if (!active || !isDesktop) return
     const onLockChange = () => {
       if (document.pointerLockElement !== null) return
+      if (cursorFreed.current) {
+        cursorFreed.current = false
+        return
+      }
       const s = useCityStore.getState()
       if (document.hasFocus() && s.mode === 'walk' && s.selectedId !== null) s.select(null)
     }
     document.addEventListener('pointerlockchange', onLockChange)
     return () => document.removeEventListener('pointerlockchange', onLockChange)
   }, [active, isDesktop])
+
+  // Leaving walk mode must hand the cursor back: drei's PointerLockControls
+  // unmount only disconnects its listeners — the browser lock itself would
+  // persist, leaving orbit mode with a hidden, trapped cursor.
+  useEffect(() => {
+    if (active || document.pointerLockElement === null) return
+    document.exitPointerLock()
+  }, [active])
 
   // (De)activation: restore last pose on entry, save it on exit.
   useEffect(() => {

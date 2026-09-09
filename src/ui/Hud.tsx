@@ -130,7 +130,7 @@ export function Hud() {
       ? 'Drag to orbit · scroll to zoom · click a building'
       : coarse
         ? 'Joystick to move · drag to look · tap ground to walk'
-        : 'WASD to walk · Esc to exit'
+        : 'WASD to walk · ⌘/Ctrl frees the cursor · Esc to exit'
 
   return (
     <div className="pointer-events-none fixed inset-0 z-30">
