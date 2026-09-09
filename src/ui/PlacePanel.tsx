@@ -27,6 +27,13 @@ const pillClass =
 const primaryPillClass =
   'inline-flex cursor-pointer items-center gap-1 rounded-full bg-slate-900 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400'
 
+/** Prefix root-relative public assets with Vite's base (GitHub Pages subpaths). */
+function resolveAssetUrl(src: string | undefined): string | undefined {
+  if (!src || !src.startsWith('/') || src.startsWith('//')) return src
+  const base = import.meta.env.BASE_URL || '/'
+  return `${base.endsWith('/') ? base.slice(0, -1) : base}${src}`
+}
+
 /** External markdown links open in a new tab; images get card styling. */
 const mdComponents: Components = {
   a: ({ href, children }) => {
@@ -40,7 +47,7 @@ const mdComponents: Components = {
   },
   img: ({ src, alt, title }) => (
     <img
-      src={src}
+      src={resolveAssetUrl(typeof src === 'string' ? src : undefined)}
       alt={alt ?? ''}
       title={title}
       loading="lazy"

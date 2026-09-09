@@ -73,4 +73,6 @@ deployed site never ships it.
    preview URLs.
 
 Any static host (Netlify, GitHub Pages, S3…) works the same way: upload
-`dist/`.
+`dist/`. For a GitHub Pages **project** site served under `/<repo>/`, set
+`BASE_PATH=/portfolio` (or your repo name) when building so Vite emits
+subpath-safe asset URLs.

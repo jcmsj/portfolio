@@ -17,6 +17,15 @@ export interface FocusRequest {
 
 const HELP_KEY = 'nsj-help-dismissed'
 
+function readHelpDismissed(): boolean {
+  try {
+    return typeof localStorage !== 'undefined' && localStorage.getItem(HELP_KEY) === '1'
+  } catch {
+    // Sandboxed iframes / blocked storage — treat as not dismissed.
+    return false
+  }
+}
+
 interface CityStore {
   city: CityData
   baseCity: CityData
@@ -53,6 +62,7 @@ interface CityStore {
   setSaving: (saving: boolean) => void
   setSaveError: (errors: string[] | null) => void
   setDragging: (dragging: boolean) => void
+  markDirty: () => void
 }
 
 export const useCityStore = create<CityStore>()((set, get) => ({
@@ -64,8 +74,7 @@ export const useCityStore = create<CityStore>()((set, get) => ({
   mode: 'orbit',
   panelOpen: false,
   listOpen: false,
-  helpDismissed:
-    typeof localStorage !== 'undefined' && localStorage.getItem(HELP_KEY) === '1',
+  helpDismissed: readHelpDismissed(),
   focusRequest: null,
 
   editing: false,
@@ -113,6 +122,7 @@ export const useCityStore = create<CityStore>()((set, get) => ({
   setSaving: (saving) => set({ saving }),
   setSaveError: (saveError) => set({ saveError }),
   setDragging: (dragging) => set({ dragging }),
+  markDirty: () => set({ dirty: true }),
 }))
 
 /** Find a place by id (or the plaza content place when id === plaza.contentId). */

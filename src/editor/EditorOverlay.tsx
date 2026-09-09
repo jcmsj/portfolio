@@ -223,11 +223,27 @@ export default function EditorOverlay() {
 
   /* --- markdown drafts ---------------------------------------------------- */
 
-  const patchDraft = (id: string, patch: Partial<MdPayload>) =>
-    setDrafts((prev) => ({
-      ...prev,
-      [id]: { ...(prev[id] ?? { body: '', links: [] }), ...patch },
-    }))
+  const patchDraft = (id: string, patch: Partial<MdPayload>) => {
+    setDrafts((prev) => {
+      const next = {
+        ...prev,
+        [id]: { ...(prev[id] ?? { body: '', links: [] }), ...patch },
+      }
+      // Markdown lives outside city.json — flag the session dirty so exitEdit
+      // prompts and does not silently drop unsaved story edits.
+      const initial = initialDraftsRef.current
+      const ids = new Set([...Object.keys(next), ...Object.keys(initial)])
+      for (const key of ids) {
+        const a = normalizeMd(next[key] ?? { body: '', links: [] })
+        const b = normalizeMd(initial[key] ?? { body: '', links: [] })
+        if (JSON.stringify(a) !== JSON.stringify(b)) {
+          useCityStore.getState().markDirty()
+          break
+        }
+      }
+      return next
+    })
+  }
 
   /* --- save ---------------------------------------------------------------- */
 
