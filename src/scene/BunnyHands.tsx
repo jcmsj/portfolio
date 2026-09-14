@@ -6,19 +6,20 @@ import { walkInput } from './walkInput'
 import { useCityStore } from '@/state/store'
 
 /**
- * First-person bunny-paw costume: a pair of procedural low-poly paws glued
- * to the camera while walking. Idle breathing bob, alternating paw-punches
- * while moving, "ears-up" pose in the air and a punch + carrot puff on every
- * successfully chained bunny hop (walkTelemetry.lastHopAt edge).
+ * First-person pompom-bunny costume: two fluffy pom-poms (not skeletal FPS
+ * hands) glued to the camera while walking, each wearing floppy plush ears.
+ * Idle breathing, alternating punches while moving, "ears-up" pose in the
+ * air, and a punch + carrot puff on every chained bunny hop.
  *
- * The rig copies the camera transform each frame and keeps its children in
- * camera space, sitting past the near plane (0.5) and drawn last with
- * depthTest off, so scene geometry never slices through the paws.
+ * Geometry is a deterministic cluster of flat-shaded spheres so the silhouette
+ * reads as soft fluff and matches the city's low-poly look. Children sit past
+ * the near plane with depthTest off so scene geometry never slices the puffs.
  */
 
-const FUR = '#fbf6f2'
-const PAD_PINK = '#f2a7c3'
-const INNER_EAR = '#f6b8cf'
+const FUR = '#fbf5f0'
+const FUR_SHADE = '#f3e8e1'
+const FUR_WARM = '#fff7f2'
+const INNER_EAR = '#f2a7c3'
 const CARROT = '#f59e0b'
 
 const PUNCH_DECAY = 6
@@ -26,52 +27,70 @@ const AIR_LERP = 10
 const CARROT_POOL = 10
 const CARROT_LIFE = 0.5
 
-function Paw() {
+/**
+ * One pompom = center ball + offset lobes. Offsets are fixed (not random)
+ * so the fluff silhouette is stable across remounts.
+ */
+const PUFF_LOBES: [number, number, number, number][] = [
+  [0, 0, 0, 1.0],
+  [0.075, 0.035, 0.02, 0.72],
+  [-0.07, 0.045, 0.015, 0.7],
+  [0.01, 0.085, -0.03, 0.68],
+  [0.03, -0.05, 0.06, 0.66],
+  [-0.04, -0.055, 0.04, 0.64],
+  [0.06, 0.01, -0.07, 0.58],
+  [-0.055, 0.02, -0.065, 0.56],
+  [0.0, -0.02, -0.09, 0.55],
+  [0.05, 0.06, 0.05, 0.5],
+  [-0.045, 0.065, 0.045, 0.48],
+  [0.0, 0.02, 0.08, 0.52],
+]
+
+function Puff({ tone = 0 }: { tone?: 0 | 1 }) {
   return (
     <group>
-      {/* wrist cuff */}
-      <mesh position={[0, 0, 0.16]} rotation-x={Math.PI / 2} renderOrder={999}>
-        <cylinderGeometry args={[0.115, 0.135, 0.16, 14]} />
-        <meshStandardMaterial color={FUR} flatShading depthTest={false} />
-      </mesh>
-      {/* palm */}
-      <mesh scale={[1, 0.72, 1.3]} renderOrder={999}>
-        <sphereGeometry args={[0.1, 14, 12]} />
-        <meshStandardMaterial color={FUR} flatShading depthTest={false} />
-      </mesh>
-      {/* four toes in a shallow arc, pink beans at the tips */}
-      {[-0.069, -0.023, 0.023, 0.069].map((tx, i) => (
-        <group key={i} position={[tx, 0.012 - Math.abs(tx) * 0.18, -0.115]}>
-          <mesh rotation-x={Math.PI / 2} renderOrder={999}>
-            <capsuleGeometry args={[0.026, 0.05, 3, 8]} />
-            <meshStandardMaterial color={FUR} flatShading depthTest={false} />
-          </mesh>
-          <mesh position={[0, 0, -0.045]} renderOrder={999}>
-            <sphereGeometry args={[0.02, 10, 8]} />
-            <meshStandardMaterial color={PAD_PINK} flatShading depthTest={false} />
-          </mesh>
-        </group>
+      {PUFF_LOBES.map(([x, y, z, s], i) => (
+        <mesh key={i} position={[x, y, z]} scale={s} renderOrder={999}>
+          <sphereGeometry args={[0.115, 12, 10]} />
+          <meshStandardMaterial
+            color={i % 3 === 0 ? FUR_WARM : i % 3 === 1 ? FUR : FUR_SHADE}
+            flatShading
+            depthTest={false}
+          />
+        </mesh>
       ))}
-      {/* big palm bean */}
-      <mesh position={[0, -0.035, -0.02]} renderOrder={999}>
-        <sphereGeometry args={[0.038, 10, 8]} />
-        <meshStandardMaterial color={PAD_PINK} flatShading depthTest={false} />
+      {/* soft pink under-fluff — only peeks from below, not a "pad bean" */}
+      <mesh position={[0, -0.07, 0.01]} scale={[0.85, 0.45, 0.7]} renderOrder={998}>
+        <sphereGeometry args={[0.1, 10, 8]} />
+        <meshStandardMaterial
+          color={tone ? '#f7c4d6' : INNER_EAR}
+          flatShading
+          depthTest={false}
+          transparent
+          opacity={0.85}
+        />
       </mesh>
     </group>
   )
 }
 
-function Ear({ inner }: { inner?: boolean }) {
+/** Floppy plush ear: three stacked ellipsoids, thicker at the base. */
+function Ear() {
   return (
-    <mesh rotation-x={Math.PI / 2} renderOrder={998}>
-      <capsuleGeometry args={inner ? [0.02, 0.14, 3, 8] : [0.035, 0.17, 3, 8]} />
-      <meshStandardMaterial
-        color={inner ? INNER_EAR : FUR}
-        flatShading
-        depthTest={false}
-        transparent={inner}
-      />
-    </mesh>
+    <group>
+      <mesh position={[0, 0, 0]} scale={[1, 0.75, 1.55]} renderOrder={998}>
+        <sphereGeometry args={[0.045, 10, 8]} />
+        <meshStandardMaterial color={FUR} flatShading depthTest={false} />
+      </mesh>
+      <mesh position={[0, 0.01, -0.07]} scale={[0.9, 0.7, 1.5]} renderOrder={998}>
+        <sphereGeometry args={[0.038, 10, 8]} />
+        <meshStandardMaterial color={FUR_WARM} flatShading depthTest={false} />
+      </mesh>
+      <mesh position={[0, 0.005, -0.12]} scale={[0.75, 0.55, 1.2]} renderOrder={998}>
+        <sphereGeometry args={[0.028, 8, 6]} />
+        <meshStandardMaterial color={INNER_EAR} flatShading depthTest={false} />
+      </mesh>
+    </group>
   )
 }
 
@@ -81,8 +100,8 @@ export function BunnyHands() {
   const camera = useThree((s) => s.camera)
 
   const follow = useRef<Group>(null)
-  const leftPaw = useRef<Group>(null)
-  const rightPaw = useRef<Group>(null)
+  const leftPuff = useRef<Group>(null)
+  const rightPuff = useRef<Group>(null)
   const leftEar = useRef<Group>(null)
   const rightEar = useRef<Group>(null)
   const carrotRefs = useRef<(Mesh | null)[]>([])
@@ -142,33 +161,39 @@ export function BunnyHands() {
     g.position.copy(camera.position)
     g.quaternion.copy(camera.quaternion)
 
-    const bob = Math.sin(t * 1.8) * 0.008
+    const bob = Math.sin(t * 1.8) * 0.01
     const sway = walkInput.x * 0.12
-    const lift = a.air * 0.1
-    const punchZ = a.punch * 0.085
+    const lift = a.air * 0.12
+    const punchZ = a.punch * 0.1
     const moveAmt = Math.min(1, hs / RUN_SPEED)
+    // Soft squash-and-stretch on the punch so the pompom feels plush.
+    const sq = 1 + a.punch * 0.2
 
-    for (const [paw, side, phase] of [
-      [leftPaw.current, -1, 0],
-      [rightPaw.current, 1, Math.PI],
+    for (const [puff, side, phase] of [
+      [leftPuff.current, -1, 0],
+      [rightPuff.current, 1, Math.PI],
     ] as const) {
-      if (!paw) continue
+      if (!puff) continue
       const stride = Math.sin(a.stride + phase) * moveAmt * (1 - a.air)
-      paw.position.set(
-        side * 0.33 + sway * -side * 0.4,
-        -0.3 + bob + lift + Math.abs(stride) * 0.015,
-        -0.9 + stride * 0.05 + punchZ * (side < 0 ? 1 : 0.85),
+      puff.position.set(
+        side * 0.34 + sway * -side * 0.35,
+        -0.28 + bob + lift + Math.abs(stride) * 0.02,
+        -0.88 + stride * 0.05 + punchZ * (side < 0 ? 1 : 0.85),
       )
-      paw.rotation.set(
-        0.3 - a.air * 0.55 + a.punch * 0.18 + stride * 0.06,
-        side * -0.18 + sway * 0.5,
-        side * (0.12 + sway * 0.6),
+      puff.rotation.set(
+        0.22 - a.air * 0.5 + a.punch * 0.22 + stride * 0.06,
+        side * -0.2 + sway * 0.5,
+        side * (0.1 + sway * 0.6),
       )
+      puff.scale.set(1 / sq, 1 / sq, sq)
     }
     for (const ear of [leftEar.current, rightEar.current]) {
       if (!ear) continue
-      ear.rotation.x = -0.25 + a.earTilt + a.air * 0.35 + Math.sin(t * 6) * 0.04 * Math.min(1, hs / RUN_SPEED)
-      ear.rotation.z = Math.sin(t * 3.1) * 0.05 * (1 + Math.min(1.5, hs / RUN_SPEED))
+      ear.rotation.x =
+        -0.55 + a.earTilt + a.air * 0.55 + Math.sin(t * 6) * 0.05 * Math.min(1, hs / RUN_SPEED)
+      ear.rotation.z = Math.sin(t * 3.1) * 0.06 * (1 + Math.min(1.5, hs / RUN_SPEED))
+      // Drop ears with speed so they stream behind like plush flaps.
+      ear.position.y = -0.02 + a.earTilt * 0.04
     }
 
     // Carrot particles (camera-space emission).
@@ -194,26 +219,19 @@ export function BunnyHands() {
 
   return (
     <group ref={follow}>
-      {/* tiny camera light so the paws read regardless of sun angle */}
+      {/* tiny camera light so the fluff reads regardless of sun angle */}
       <pointLight position={[0, 0.35, 0.1]} intensity={2.2} distance={2.4} decay={2} />
-      <group ref={leftPaw}>
-        <Paw />
-        <group ref={leftEar} position={[-0.045, 0.1, 0.22]}>
+      <group ref={leftPuff}>
+        <Puff />
+        {/* ears hang off the back of the pompom, not as antennae */}
+        <group ref={leftEar} position={[-0.06, 0.06, 0.12]} rotation-x={-0.55}>
           <Ear />
-          <mesh position={[0, 0, -0.018]} renderOrder={998}>
-            <capsuleGeometry args={[0.018, 0.13, 3, 8]} />
-            <meshStandardMaterial color={INNER_EAR} flatShading depthTest={false} />
-          </mesh>
         </group>
       </group>
-      <group ref={rightPaw}>
-        <Paw />
-        <group ref={rightEar} position={[0.045, 0.1, 0.22]}>
+      <group ref={rightPuff}>
+        <Puff tone={1} />
+        <group ref={rightEar} position={[0.06, 0.06, 0.12]} rotation-x={-0.55}>
           <Ear />
-          <mesh position={[0, 0, -0.018]} renderOrder={998}>
-            <capsuleGeometry args={[0.018, 0.13, 3, 8]} />
-            <meshStandardMaterial color={INNER_EAR} flatShading depthTest={false} />
-          </mesh>
         </group>
       </group>
       {Array.from({ length: CARROT_POOL }, (_, i) => (
