@@ -7,6 +7,7 @@ import { Minimap } from './Minimap'
 import { MobileWalkControls } from './MobileWalkControls'
 import { PlacePanel } from './PlacePanel'
 import { useFullscreen, useMediaQuery } from './hooks'
+import { RUN_SPEED, walkTelemetry } from '@/scene/bhop'
 
 /**
  * 2D UI layer over the 3D city: identity chip, minimap, mode toggle,
@@ -125,12 +126,24 @@ export function Hud() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing, helpVisible, listOpen, selectedId, mode, fullscreen, select, setMode, toggleList, toggleMode, toggleFullscreen, dismissHelp])
 
+  const showPaws = useCityStore((st) => st.showPaws)
+  const togglePaws = useCityStore((st) => st.togglePaws)
+  const [speed, setSpeed] = useState(0)
+  useEffect(() => {
+    if (mode !== 'walk') {
+      setSpeed(0)
+      return
+    }
+    const id = window.setInterval(() => setSpeed(walkTelemetry.speed), 100)
+    return () => window.clearInterval(id)
+  }, [mode])
+
   const hint =
     mode === 'orbit'
       ? 'Drag to orbit · scroll to zoom · click a building'
       : coarse
         ? 'Joystick to move · drag to look · tap ground to walk'
-        : 'WASD to walk · ⌘/Ctrl frees the cursor · Esc to exit'
+        : 'WASD to walk · Space/scroll to bunny hop · ⌘/Ctrl frees the cursor · Esc to exit'
 
   return (
     <div className="pointer-events-none fixed inset-0 z-30">
@@ -184,6 +197,17 @@ export function Hud() {
       {/* Bottom-center: camera mode + contextual hint */}
       {!editing && (
         <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 flex-col items-center gap-1.5 select-none sm:bottom-4">
+          {mode === 'walk' && (
+            <div
+              className={`pointer-events-none rounded-full px-3 py-0.5 text-xs font-semibold tabular-nums backdrop-blur-sm transition-colors ${
+                speed > RUN_SPEED * 1.05
+                  ? 'bg-amber-300/80 text-amber-950'
+                  : 'bg-white/55 text-slate-600'
+              }`}
+            >
+              {Math.round(speed * 3.6)} km/h
+            </div>
+          )}
           <div className="panel-glass pointer-events-auto flex rounded-full p-1" role="group" aria-label="Camera mode">
             <button
               type="button"
@@ -202,6 +226,19 @@ export function Hud() {
               🚶 Walk
             </button>
           </div>
+          {mode === 'walk' && (
+            <button
+              type="button"
+              aria-pressed={showPaws}
+              title="Bunny paw costume"
+              className={`panel-glass pointer-events-auto rounded-full px-3 py-1 text-xs font-semibold transition ${
+                showPaws ? 'text-pink-700' : 'text-slate-500'
+              }`}
+              onClick={togglePaws}
+            >
+              PAWS
+            </button>
+          )}
           <p className="hud-passive pointer-events-none rounded-full bg-white/55 px-3 py-0.5 text-xs text-slate-600 backdrop-blur-sm">
             {hint}
           </p>

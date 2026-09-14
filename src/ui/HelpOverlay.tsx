@@ -77,6 +77,11 @@ export function HelpOverlay({ open, onClose }: HelpOverlayProps) {
                 <kbd className={kbdClass}>WASD</kbd>.
               </li>
               <li>
+                In Walk, hold <kbd className={kbdClass}>Space</kbd> (or scroll) to bunny hop —
+                turn the mouse with <kbd className={kbdClass}>A</kbd>/<kbd className={kbdClass}>D</kbd>{' '}
+                mid-air to stack speed like Counter-Strike.
+              </li>
+              <li>
                 <kbd className={kbdClass}>Esc</kbd> closes panels and exits Walk.
               </li>
               <li>

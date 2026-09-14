@@ -2,12 +2,23 @@ import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { PointerLockControls } from '@react-three/drei'
 import type { ThreeEvent } from '@react-three/fiber'
-import { Euler, Mesh, Quaternion, Vector3 } from 'three'
+import { Euler, Mesh, PerspectiveCamera, Quaternion, Vector3 } from 'three'
 import { getFootprint } from './archetypes'
 import { buildPropObstacles } from './propSpots'
 import { resetWalkInput, sceneClickSuppressed, suppressSceneClick, walkInput } from './walkInput'
 import { useCityStore } from '@/state/store'
 import { useMediaQuery } from '@/ui/hooks'
+import {
+  RUN_SPEED,
+  SOFT_CAP,
+  createBhopState,
+  horizontalSpeed,
+  queueJump,
+  stepBhop,
+  walkTelemetry,
+  type BhopEnv,
+  type BhopState,
+} from './bhop'
 
 /**
  * Walk mode: first-person strolling.
@@ -20,8 +31,10 @@ import { useMediaQuery } from '@/ui/hooks'
  */
 
 const EYE_HEIGHT = 2.0
-const WALK_SPEED = 9
-const RUN_SPEED = 16
+/** Walk-entry / orbit fov (CityCanvas default); walk widens it with speed. */
+const BASE_FOV = 50
+/** Max fov widening at the bhop soft cap — speed you can *feel*. */
+const FOV_KICK = 14
 const ISLAND_LIMIT = 81
 const FOUNTAIN_RADIUS = 3.5
 const PLAZA_RADIUS = 11
@@ -44,6 +57,7 @@ const MOVE_KEYS = new Set([
 ])
 
 interface Walker {
+  /** Feet position — aliased to `bh.pos`, so physics and camera share it. */
   pos: Vector3
   /** Camera orientation kept across walk sessions. */
   quat: Quaternion
@@ -52,6 +66,16 @@ interface Walker {
   eye: number
   dest: { x: number; z: number } | null
   initialized: boolean
+  /** Fixed-tick CS-style physics state. */
+  bh: BhopState
+  /** Space held (desktop) — hold-to-autobhop like CS 1.6 / Crossfire. */
+  jumpHeld: boolean
+  /** Mobile jump button edge detection. */
+  lastMobileJump: number
+  /** Landing squash applied to the camera, decays per frame. */
+  dip: number
+  lastHops: number
+  prevVy: number
 }
 
 interface Obstacle {
@@ -84,11 +108,20 @@ export function WalkControls() {
     eye: EYE_HEIGHT,
     dest: null,
     initialized: false,
+    bh: null as unknown as BhopState,
+    jumpHeld: false,
+    lastMobileJump: -Infinity,
+    dip: 0,
+    lastHops: 0,
+    prevVy: 0,
   })
+  if (!walker.current.bh) {
+    // Alias: the physics state mutates the walker's Vector3 directly.
+    const w0 = walker.current
+    w0.bh = createBhopState(w0.pos.x, w0.pos.y, w0.pos.z)
+    w0.bh.pos = w0.pos
+  }
 
-  const forward = useRef(new Vector3())
-  const rightV = useRef(new Vector3())
-  const upV = useRef(new Vector3(0, 1, 0))
   const eulerTmp = useRef(new Euler(0, 0, 0, 'YXZ'))
 
   const obstacles = useMemo<Obstacle[]>(
@@ -143,6 +176,29 @@ export function WalkControls() {
     }
   }
 
+  const env = useRef<BhopEnv>(null!)
+  env.current = {
+    groundAt: groundHeight,
+    collide: (pos, vel) => {
+      const px = pos.x
+      const pz = pos.z
+      resolve(pos as Vector3)
+      // Kill the velocity component pointing into whatever pushed us out,
+      // so bunny-hopping cannot tunnel through buildings or the island rim.
+      const nx = pos.x - px
+      const nz = pos.z - pz
+      const nl = Math.hypot(nx, nz)
+      if (nl > 1e-6) {
+        const dot = (vel.x * nx + vel.z * nz) / nl
+        if (dot < 0) {
+          vel.x -= (nx / nl) * dot
+          vel.z -= (nz / nl) * dot
+        }
+      }
+    },
+  }
+
+
   useFrame((state, delta) => {
     // Destination marker pulse (also runs while inactive — mesh is null then).
     const marker = markerRef.current
@@ -159,53 +215,96 @@ export function WalkControls() {
     const fwd = walkInput.y !== 0 ? walkInput.y : keyFwd
     const strafe = walkInput.x !== 0 ? walkInput.x : keyStrafe
     const mag = Math.hypot(fwd, strafe)
-    const speed = w.shift ? RUN_SPEED : WALK_SPEED
     const locked = !isDesktop || (plcRef.current?.isLocked ?? false)
+    const yaw = eulerTmp.current.setFromQuaternion(camera.quaternion, 'YXZ').y
 
     if (isDesktop && !locked) {
-      // Waiting for the pointer lock click — hold position.
-    } else if (mag > 1e-4) {
+      // Waiting for the pointer lock click — hold position, physics paused.
+    } else {
+      let inFwd = fwd
+      let inStrafe = strafe
       if (w.dest) {
-        w.dest = null
-        setDest(null)
+        if (mag > 1e-4) {
+          // Manual input cancels tap-to-walk, as before.
+          w.dest = null
+          setDest(null)
+        } else {
+          const dx = w.dest.x - w.pos.x
+          const dz = w.dest.z - w.pos.z
+          const d = Math.hypot(dx, dz)
+          if (d < 1.2) {
+            w.dest = null
+            setDest(null)
+          } else {
+            // Tap-to-walk feeds the destination as stick input in yaw space,
+            // so it now accelerates and friction-stops like the joystick.
+            const nx = dx / d
+            const nz = dz / d
+            inFwd = nx * -Math.sin(yaw) + nz * -Math.cos(yaw)
+            inStrafe = nx * Math.cos(yaw) + nz * -Math.sin(yaw)
+            // Turn gently toward the walking direction.
+            const tyaw = Math.atan2(-dx, -dz)
+            let diff = tyaw - yaw
+            diff = Math.atan2(Math.sin(diff), Math.cos(diff))
+            const e = eulerTmp.current.set(0, yaw + diff * Math.min(1, KEY_DAMPING * delta), 0, 'YXZ')
+            e.x = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, e.x))
+            camera.quaternion.setFromEuler(e)
+          }
+        }
       }
-      camera.getWorldDirection(forward.current)
-      forward.current.y = 0
-      if (forward.current.lengthSq() < 1e-6) forward.current.set(0, 0, -1)
-      forward.current.normalize()
-      rightV.current.crossVectors(forward.current, upV.current)
-      // Unit direction * min(1, mag): keyboard diagonal isn't faster; stick scales.
-      const clamped = Math.min(1, mag)
-      const step = speed * clamped * delta
-      w.pos.addScaledVector(forward.current, (fwd / mag) * step)
-      w.pos.addScaledVector(rightV.current, (strafe / mag) * step)
-    } else if (w.dest) {
-      const dx = w.dest.x - w.pos.x
-      const dz = w.dest.z - w.pos.z
-      const d = Math.hypot(dx, dz)
-      if (d < 0.3) {
-        w.dest = null
-        setDest(null)
-      } else {
-        const step = Math.min(speed * delta, d)
-        w.pos.x += (dx / d) * step
-        w.pos.z += (dz / d) * step
-        // Turn gently toward the walking direction.
-        const yaw = Math.atan2(-dx, -dz)
-        const e = eulerTmp.current.setFromQuaternion(camera.quaternion)
-        let diff = yaw - e.y
-        diff = Math.atan2(Math.sin(diff), Math.cos(diff))
-        e.y += diff * Math.min(1, KEY_DAMPING * delta)
-        e.z = 0
-        camera.quaternion.setFromEuler(e)
+
+      // Mobile jump button (edge-triggered queue + hold-to-autobhop).
+      if (walkInput.jumpQueuedAt > w.lastMobileJump) {
+        w.lastMobileJump = walkInput.jumpQueuedAt
+        queueJump(w.bh, walkInput.jumpQueuedAt)
       }
+
+      stepBhop(
+        w.bh,
+        {
+          fwd: inFwd,
+          strafe: inStrafe,
+          run: w.shift,
+          jumpHeld: w.jumpHeld || walkInput.jumpHeld,
+        },
+        yaw,
+        delta,
+        env.current,
+        performance.now(),
+      )
     }
 
-    resolve(w.pos)
+    // ── camera: physical height, landing squash, speed-driven fov ────────
+    const bh = w.bh
+    if (bh.hops !== w.lastHops) {
+      w.lastHops = bh.hops
+      walkTelemetry.lastHopAt = performance.now()
+    }
+    if (w.prevVy < -2 && bh.onGround) {
+      w.dip = Math.min(0.35, -w.prevVy * 0.02)
+      walkTelemetry.landSpeed = bh.lastLandSpeed
+    }
+    w.prevVy = bh.vel.y
+    w.dip *= Math.exp(-9 * delta)
 
-    const targetEye = EYE_HEIGHT + groundHeight(w.pos.x, w.pos.z)
-    w.eye += (targetEye - w.eye) * Math.min(1, KEY_DAMPING * delta)
-    camera.position.set(w.pos.x, w.eye, w.pos.z)
+    const hs = horizontalSpeed(bh)
+    walkTelemetry.speed = hs
+    walkTelemetry.hops = bh.hops
+    walkTelemetry.airborne = !bh.onGround
+
+    const targetEye = bh.pos.y + EYE_HEIGHT
+    if (bh.onGround) w.eye += (targetEye - w.eye) * Math.min(1, KEY_DAMPING * delta)
+    else w.eye = targetEye
+    camera.position.set(w.pos.x, w.eye - w.dip, w.pos.z)
+
+    const cam = camera as PerspectiveCamera
+    const targetFov =
+      BASE_FOV +
+      FOV_KICK * Math.max(0, Math.min(1, (hs - RUN_SPEED) / (SOFT_CAP - RUN_SPEED)))
+    if (Math.abs(cam.fov - targetFov) > 0.05) {
+      cam.fov += (targetFov - cam.fov) * Math.min(1, 6 * delta)
+      cam.updateProjectionMatrix()
+    }
   })
 
   // Keyboard listeners, attached only while walking.
@@ -215,6 +314,11 @@ export function WalkControls() {
     const onKeyDown = (e: KeyboardEvent) => {
       if (useCityStore.getState().editing) return
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') w.shift = true
+      if (e.code === 'Space') {
+        w.jumpHeld = true
+        queueJump(w.bh)
+        e.preventDefault()
+      }
       if (MOVE_KEYS.has(e.code)) {
         w.keys.add(e.code)
         e.preventDefault()
@@ -222,11 +326,13 @@ export function WalkControls() {
     }
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') w.shift = false
+      if (e.code === 'Space') w.jumpHeld = false
       w.keys.delete(e.code)
     }
     const onBlur = () => {
       w.keys.clear()
       w.shift = false
+      w.jumpHeld = false
     }
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
@@ -237,8 +343,21 @@ export function WalkControls() {
       window.removeEventListener('blur', onBlur)
       w.keys.clear()
       w.shift = false
+      w.jumpHeld = false
     }
   }, [active])
+
+  // Scroll wheel = jump (CS players scroll for consistent bhops). Desktop only;
+  // coarse-pointer pinch-zoom must keep working.
+  useEffect(() => {
+    if (!active || !isDesktop) return
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      queueJump(walker.current.bh)
+    }
+    window.addEventListener('wheel', onWheel, { passive: false })
+    return () => window.removeEventListener('wheel', onWheel)
+  }, [active, isDesktop])
 
   // Hold ⌘/Ctrl while walking to get the cursor back for the panel and HUD.
   // The lock re-engages on the next canvas click, as on walk entry.
@@ -299,6 +418,21 @@ export function WalkControls() {
       camera.position.set(0, w.eye, 18)
       camera.lookAt(0, 2, 0)
     }
+    // Fresh physics for this walk session: grounded at the current spot.
+    w.bh.pos = w.pos
+    w.pos.y = groundHeight(w.pos.x, w.pos.z)
+    w.bh.vel.x = 0
+    w.bh.vel.y = 0
+    w.bh.vel.z = 0
+    w.bh.onGround = true
+    w.bh.acc = 0
+    w.bh.hops = 0
+    w.bh.jumpQueued = false
+    w.dip = 0
+    w.lastHops = 0
+    w.prevVy = 0
+    ;(camera as PerspectiveCamera).fov = BASE_FOV
+    ;(camera as PerspectiveCamera).updateProjectionMatrix()
     return () => {
       w.quat.copy(camera.quaternion)
       w.dest = null
@@ -306,6 +440,16 @@ export function WalkControls() {
       resetWalkInput()
     }
   }, [active, camera, groundHeight])
+
+  // Walk exit: hand the orbit rig its original fov back.
+  useEffect(() => {
+    if (active) return
+    const cam = camera as PerspectiveCamera
+    if (cam.fov !== BASE_FOV) {
+      cam.fov = BASE_FOV
+      cam.updateProjectionMatrix()
+    }
+  }, [active, camera])
 
   // Coarse-pointer drag look on the canvas (joystick lives in the HTML HUD).
   useEffect(() => {

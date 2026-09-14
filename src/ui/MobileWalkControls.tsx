@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { resetWalkInput, walkInput } from '@/scene/walkInput'
+import { pressWalkJump, releaseWalkJump, resetWalkInput, walkInput } from '@/scene/walkInput'
 import { useCityStore } from '@/state/store'
 import { useMediaQuery } from './hooks'
 
@@ -102,6 +102,24 @@ export function MobileWalkControls() {
           }}
         />
       </div>
+      {/* JUMP — hold to chain bunny hops (CS 1.6 / Crossfire style). */}
+      <button
+        type="button"
+        aria-label="Jump"
+        className={`pointer-events-auto absolute bottom-2 right-[-5.5rem] flex h-16 w-16 select-none items-center justify-center rounded-full border border-white/40 bg-white/25 text-[11px] font-semibold tracking-widest text-white/90 shadow-lg backdrop-blur-md active:bg-white/40`}
+        onPointerDown={(e) => {
+          e.stopPropagation()
+          e.currentTarget.setPointerCapture(e.pointerId)
+          pressWalkJump()
+        }}
+        onPointerUp={(e) => {
+          e.stopPropagation()
+          releaseWalkJump()
+        }}
+        onPointerCancel={releaseWalkJump}
+      >
+        JUMP
+      </button>
     </div>
   )
 }

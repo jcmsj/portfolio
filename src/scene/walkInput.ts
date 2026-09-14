@@ -9,6 +9,21 @@ export const walkInput = {
   y: 0,
   /** After a look-drag, swallow the following scene click. */
   suppressClickUntil: 0,
+  /** JUMP button held — hold-to-autobhop on coarse pointers. */
+  jumpHeld: false,
+  /** performance.now() of the last JUMP press; edge-detected by WalkControls. */
+  jumpQueuedAt: -Infinity,
+}
+
+/** Press the on-screen JUMP button. */
+export function pressWalkJump() {
+  walkInput.jumpHeld = true
+  walkInput.jumpQueuedAt = performance.now()
+}
+
+/** Release the on-screen JUMP button. */
+export function releaseWalkJump() {
+  walkInput.jumpHeld = false
 }
 
 export function suppressSceneClick(ms = 80) {
@@ -22,4 +37,5 @@ export function sceneClickSuppressed() {
 export function resetWalkInput() {
   walkInput.x = 0
   walkInput.y = 0
+  walkInput.jumpHeld = false
 }

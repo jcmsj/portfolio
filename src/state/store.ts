@@ -37,6 +37,8 @@ interface CityStore {
   panelOpen: boolean
   listOpen: boolean
   helpDismissed: boolean
+  /** Bunny-paw viewmodel costume in walk mode. */
+  showPaws: boolean
   focusRequest: FocusRequest | null
 
   // --- editor state (dev only) ---
@@ -50,6 +52,7 @@ interface CityStore {
   select: (id: string | null) => void
   setHovered: (id: string | null) => void
   setMode: (mode: Mode) => void
+  togglePaws: () => void
   toggleMode: () => void
   toggleList: () => void
   dismissHelp: () => void
@@ -72,6 +75,7 @@ export const useCityStore = create<CityStore>()((set, get) => ({
   selectedId: null,
   hoveredId: null,
   mode: 'orbit',
+  showPaws: true,
   panelOpen: false,
   listOpen: false,
   helpDismissed: readHelpDismissed(),
@@ -93,6 +97,7 @@ export const useCityStore = create<CityStore>()((set, get) => ({
   setHovered: (hoveredId) => set({ hoveredId }),
   setMode: (mode) => set({ mode }),
   toggleMode: () => set((s) => ({ mode: s.mode === 'orbit' ? 'walk' : 'orbit' })),
+  togglePaws: () => set((s) => ({ showPaws: !s.showPaws })),
   toggleList: () => set((s) => ({ listOpen: !s.listOpen, panelOpen: false })),
   dismissHelp: () => {
     try {

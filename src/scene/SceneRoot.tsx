@@ -5,6 +5,7 @@ import { Buildings } from './Buildings'
 import { Props } from './Props'
 import { Clouds } from './Clouds'
 import { CameraRig } from './CameraRig'
+import { BunnyHands } from './BunnyHands'
 import { WalkControls } from './WalkControls'
 import { DevCoords } from './DevCoords'
 
@@ -25,6 +26,8 @@ export function SceneRoot() {
           WalkControls claims it on mode switches. */}
       <CameraRig />
       <WalkControls />
+      {/* Bunny-paw viewmodel: copies the camera each frame; inert outside walk. */}
+      <BunnyHands />
       <DevCoords />
     </group>
   )
