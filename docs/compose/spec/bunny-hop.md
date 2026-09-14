@@ -1,7 +1,8 @@
 ---
 feature: bunny-hop
-status: planned
+status: delivered
 updated: 2026-09-15
+implementation: 4e3e086
 ---
 
 # Bunny hop (CS / Crossfire style) for walk mode + bunny-paw viewmodel
